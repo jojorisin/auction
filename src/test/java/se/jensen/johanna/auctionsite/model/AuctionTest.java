@@ -63,26 +63,26 @@ class AuctionTest {
         assertEquals(increment, result.newBid().getBidSum());
         assertNull(result.otherBid());
         assertNotNull(result.newBid());
+        assertNotNull(result.maxBid());
     }
 
     @Test
     @DisplayName("Handle raised bid")
     void shouldCreateMaxBid_andNotPutBid() {
-        int firstAmount = 2000;
-        int secondAmount = 2001;
-        BiddingResult result = auction.placeBid(currentBidder, firstAmount);
+        int firstAmount = increment;
+        int secondAmount = increment + 1;
+        BiddingResult firstResult = auction.placeBid(currentBidder, firstAmount);
         BiddingResult raisedResult = auction.placeBid(currentBidder, secondAmount);
 
-        assertTrue(result.newBidderLeads());
+        assertTrue(firstResult.newBidderLeads());
         assertTrue(raisedResult.newBidderLeads());
-        assertTrue(result.isAuto());
+        assertFalse(firstResult.isAuto());
         assertTrue(raisedResult.isAuto());
-        assertNotNull(result.newBid());
-        assertEquals(increment, result.newBid().getBidSum());
+        assertNotNull(firstResult.newBid());
+        assertEquals(increment, firstResult.newBid().getBidSum());
         assertNull(raisedResult.newBid());
-        assertNotNull(result.newBid());
-        assertNull(result.otherBid());
-        System.out.println(result + " " + raisedResult);
+        assertNotNull(firstResult.newBid());
+        assertNull(firstResult.otherBid());
     }
 
     @Test

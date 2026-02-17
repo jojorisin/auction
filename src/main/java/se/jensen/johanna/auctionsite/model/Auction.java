@@ -88,7 +88,6 @@ public class Auction extends BaseEntity {
 
 
         checkNewBidSumIsValid(amount);
-        softClose(now);
 
 
         if (bids.isEmpty() && maxBids.isEmpty()) {
@@ -102,6 +101,8 @@ public class Auction extends BaseEntity {
         winningBid = result.otherBid() == null ?
                 result.newBid() : result.newBidderLeads() ? result.newBid() : result.otherBid();
 
+
+        softClose(now);
 
         return result;
 
@@ -140,10 +141,9 @@ public class Auction extends BaseEntity {
      * @param amount the new max amount
      */
     private BiddingResult handleRaisedBid(User bidder, int amount) {
-        boolean isNewBidMaxBid = isNewBidMaxBid(amount);
         MaxBid maxBid = MaxBid.create(this, bidder, amount);
         this.maxBids.add(maxBid);
-        return new BiddingResult(true, null, null, isNewBidMaxBid, maxBid);
+        return new BiddingResult(true, null, null, true, maxBid);
     }
 
 
