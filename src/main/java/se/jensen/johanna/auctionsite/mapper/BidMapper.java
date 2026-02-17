@@ -1,0 +1,25 @@
+package se.jensen.johanna.auctionsite.mapper;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import se.jensen.johanna.auctionsite.dto.admin.AdminBidDTO;
+import se.jensen.johanna.auctionsite.dto.enums.BidStatus;
+import se.jensen.johanna.auctionsite.dto.my.MyActiveBids;
+import se.jensen.johanna.auctionsite.model.Bid;
+
+@Mapper(componentModel = "spring")
+public interface BidMapper {
+
+    //*********ADMIN MAPPERS*******
+    @Mapping(target = "auctionId", source = "bid.auction.id")
+    @Mapping(target = "userId", source = "bidder.id")
+    AdminBidDTO toAdminRecord(Bid bid);
+
+    @Mapping(target = "auctionId", source = "bid.auction.id")
+    @Mapping(target = "title", source = "bid.auction.item.title")
+    @Mapping(target = "imageUrls", source = "bid.auction.item.imageUrls")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "highestBid", expression = "java(bid.getAuction().leadingAmount())")
+    @Mapping(target = "endTime", source = "bid.auction.endTime")
+    MyActiveBids toMyRecord(Bid bid, BidStatus status);
+}
