@@ -53,7 +53,7 @@ public class AdminAuctionController {
 
     }
 
-    @PostMapping("{auctionId}")
+    @PostMapping("/{auctionId}/launch")
     public ResponseEntity<ManualLaunchResponse> launchAuction(
             @PathVariable Long auctionId,
             @RequestBody @Valid ManualLaunchRequest request
