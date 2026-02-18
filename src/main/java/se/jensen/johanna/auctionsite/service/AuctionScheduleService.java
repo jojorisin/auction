@@ -31,28 +31,22 @@ public class AuctionScheduleService {
                             a.closeSoldAuction(bid);
                             EmailTypeDTO emailTypeDTO = new EmailTypeDTO(
                                     bid.getBidder().getEmail(),
-                                    BidStatus.WON, a.getId(), null,
+                                    BidStatus.WON,
+                                    a.getId(),
+                                    null,
                                     a.getItem().getTitle()
                             );
                             emailService.sendEmail(emailTypeDTO);
-
                         } else {
                             a.closeAuctionAcceptedNotMet();
                         }
-                        //mejl till alla i budlistan? notifyallparticipants
-
                     }, a::closeExpiredAuction
             );
-
-
         }
-
     }
 
     @Scheduled(cron = "0 * * * * *")
     public void checkReminder() {
 
     }
-
-
 }

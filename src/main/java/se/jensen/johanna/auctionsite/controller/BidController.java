@@ -24,7 +24,6 @@ public class BidController {
     private final BidService bidService;
     private final JwtUtils jwtUtils;
 
-
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/auctions/{auctionId}/bid")
     public ResponseEntity<BidResponse> placeBid(
@@ -34,8 +33,6 @@ public class BidController {
     ) {
         BidResponse responseDTO = bidService.placeBid(bidRequest, jwtUtils.extractUserId(jwt), auctionId);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
-
-
     }
 
     @GetMapping("/auctions/{auctionId}/bid")
@@ -46,6 +43,4 @@ public class BidController {
         Optional<Long> userId = Optional.ofNullable(jwt).map(jwtUtils::extractUserId);
         return ResponseEntity.ok(bidService.getBidsForActiveAuction(auctionId, userId));
     }
-
-
 }

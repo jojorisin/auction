@@ -11,6 +11,9 @@ import se.jensen.johanna.auctionsite.model.enums.Category;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the item to auction
+ */
 @Entity
 @Table(name = "items")
 @AttributeOverride(name = "id", column = @Column(name = "item_id"))
@@ -43,7 +46,6 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private Integer valuation;
 
-
     public static Item create(
             User seller,
             Category category,
@@ -62,7 +64,6 @@ public class Item extends BaseEntity {
         if (description == null || description.isBlank()) throw new IllegalArgumentException("Description is required");
         if (valuation == null || valuation <= 0) throw new IllegalArgumentException("Valuation must be greater than 0");
 
-
         return Item.builder()
                    .seller(seller)
                    .category(category)
@@ -72,8 +73,6 @@ public class Item extends BaseEntity {
                    .valuation(valuation)
                    .imageUrls(imageUrls != null ? imageUrls : new ArrayList<>())
                    .build();
-
-
     }
 
     public void update(
@@ -91,7 +90,6 @@ public class Item extends BaseEntity {
         if (description != null && !description.isEmpty()) this.description = description;
         if (valuation != null && valuation > 0) this.valuation = valuation;
         if (imageUrls != null) this.imageUrls = imageUrls;
-
     }
 
     public void updateCategories(Category category, Category.SubCategory subCategory) {
@@ -100,7 +98,6 @@ public class Item extends BaseEntity {
         }
         if (!subCategory.getCategory().equals(category)) {
             throw new IllegalArgumentException("Subcategory must belong to the same category as the item.");
-
         }
         this.category = category;
         this.subCategory = subCategory;
@@ -124,7 +121,6 @@ public class Item extends BaseEntity {
     public void addImage(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) throw new IllegalArgumentException("Image url is required");
         imageUrls.add(imageUrl);
-
     }
 
     public void updateImageUrls(List<String> imageUrls) {
@@ -145,6 +141,4 @@ public class Item extends BaseEntity {
     private static boolean checkValidSub(Category category, Category.SubCategory subCategory) {
         return subCategory != null && subCategory.getCategory().equals(category);
     }
-
-
 }

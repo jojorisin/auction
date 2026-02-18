@@ -9,20 +9,9 @@ import se.jensen.johanna.auctionsite.model.Bid;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface BidRepository extends JpaRepository<Bid, Long> {
-
-    @Query("SELECT b FROM Bid b WHERE b.auction.id=:auctionId AND b.auction.status='ACTIVE' " +
-            "AND b.bidSum > 0  ORDER BY b.createdAt DESC, b.id DESC")
-    List<Bid> findAllActiveBidsForAuction(Long auctionId);
-
-
-    @Query("SELECT b.bidSum FROM Bid b WHERE b.auction.id=:auctionId " +
-            "ORDER BY b.bidSum DESC LIMIT 1")
-    Optional<Integer> findHighestBidSum(@Param("auctionId") Long auctionId);
-
 
     @EntityGraph(attributePaths = {"auction.winningBid.bidder"})
     @Query("SELECT b FROM Bid b WHERE b.bidder.id = :userId " +
@@ -34,6 +23,4 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
             @Param("userId") Long userId,
             @Param("status") AuctionStatus status
     );
-
-
 }

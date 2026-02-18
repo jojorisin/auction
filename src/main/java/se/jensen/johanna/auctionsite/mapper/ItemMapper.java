@@ -9,12 +9,9 @@ import se.jensen.johanna.auctionsite.model.Item;
 @Mapper(componentModel = "spring")
 public interface ItemMapper {
 
-
     @Mapping(target = "sellerId", source = "seller.id")
     @Mapping(target = "itemId", source = "id")
     AdminItemDTO toRecord(Item item);
 
     ItemDTO toShowRecord(Item item);
-
-
 }

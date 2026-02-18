@@ -22,34 +22,32 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public LoginResult login(LoginRequest loginRequest) {
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                loginRequest.email(), loginRequest.password()
-        );
+        Authentication auth = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password());
         Authentication authenticatedAuth = authenticationManager.authenticate(auth);
         MyUserDetails userDetails = (MyUserDetails) authenticatedAuth.getPrincipal();
         String accessToken = tokenService.generateToken(userDetails);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
-        return new LoginResult(new LoginResponse(
-                accessToken,
-                userDetails.getUserId(),
-                userDetails.getRole(),
-                userDetails.getUsername()
-        )
-                , refreshToken.getToken()
+        return new LoginResult(
+                new LoginResponse(
+                        accessToken,
+                        userDetails.getUserId(),
+                        userDetails.getRole(),
+                        userDetails.getUsername()
+                ),
+                refreshToken.getToken()
         );
-
     }
 
     public RefreshResult refresh(String oldTokenStr) {
         RefreshToken oldToken = refreshTokenService.findByToken(oldTokenStr)
-                .map(refreshTokenService::verifyExpiration)
-                .orElseThrow(() -> new RefreshTokenException("RefreshToken is not in database")
-                );
+                                                   .map(refreshTokenService::verifyExpiration)
+                                                   .orElseThrow(() -> new RefreshTokenException(
+                                                           "RefreshToken is not in database"));
 
-        MyUserDetails userDetails = (MyUserDetails) userDetailsService.loadUserByUsername(oldToken.getUser().getEmail());
+        MyUserDetails userDetails = (MyUserDetails) userDetailsService.loadUserByUsername(oldToken.getUser()
+                                                                                                  .getEmail());
         String newAccessToken = tokenService.generateToken(userDetails);
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
         return new RefreshResult(newAccessToken, newRefreshToken.getToken());
     }
-
 }

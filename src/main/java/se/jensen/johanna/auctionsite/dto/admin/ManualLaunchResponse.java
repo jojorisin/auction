@@ -11,6 +11,5 @@ public record ManualLaunchResponse(
         Instant startTime,
         Instant endTime,
         AuctionStatus status
-
 ) {
 }

@@ -9,8 +9,7 @@ import lombok.experimental.SuperBuilder;
 import net.jcip.annotations.Immutable;
 
 /**
- * Bid entity.
- * bidSum and maxBidSum are set to 0 by default to prevent nullPointerExc when calculating
+ * Represents a Bid Entity in the auction system
  */
 @Entity
 @Immutable
@@ -25,18 +24,15 @@ public class Bid extends BaseEntity {
     @JoinColumn(name = "auction_id", nullable = false)
     private Auction auction;
 
-
     @ManyToOne
     @JoinColumn(name = "bidder_id", nullable = false)
     private User bidder;
-
 
     @NotNull
     @Column(name = "bid_sum", nullable = false, updatable = false)
     private Integer bidSum;
 
     private Boolean isAuto;
-
 
     /**
      * Creates a new normal bid
@@ -52,12 +48,8 @@ public class Bid extends BaseEntity {
                   .auction(auction)
                   .bidder(bidder)
                   .bidSum(bidSum)
-                  //.maxBid(bidSum)
                   .isAuto(false)
-                  //.autoTimestamp(Instant.now())
                   .build();
-
-
     }
 
     public static Bid generateBidFromMaxBid(Auction auction, User bidder, int bidSum) {
@@ -68,6 +60,4 @@ public class Bid extends BaseEntity {
                   .isAuto(true)
                   .build();
     }
-
-
 }

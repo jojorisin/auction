@@ -18,5 +18,4 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             @Param("category") Category category,
             @Param("subCategory") Category.SubCategory subCategory
     );
-
 }

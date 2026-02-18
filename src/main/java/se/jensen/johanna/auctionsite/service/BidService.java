@@ -36,21 +36,18 @@ public class BidService {
     private final UserRepository userRepository;
     private final BidMapper bidMapper;
 
-
     /**
      * Retrieves a list of all bids for an auction
      *
      * @param auctionId ID of auction to fetch bids for
      * @return {@link BidHistoryDTO} a list of all bids with an Integer as an alias for the bidder
      */
-
     public List<BidHistoryDTO> getBidsForActiveAuction(Long auctionId, Optional<Long> currentUserId) {
-
-        //Auction auction = auctionRepository.findById(auctionId).orElseThrow(NotFoundException::new);
         Auction auction = auctionRepository.findWithBidsAndBiddersById(auctionId).orElseThrow(NotFoundException::new);
 
         AtomicInteger counter = new AtomicInteger(1);
         Map<Long, Integer> userIdAlias = new HashMap<>();
+
         auction.getBids().stream()
                .sorted(Comparator.comparing(Bid::getCreatedAt))
                .forEach(bid -> userIdAlias.computeIfAbsent(
@@ -61,36 +58,37 @@ public class BidService {
         return auction.getBids().stream().map(bid -> {
             Long bidderId = bid.getBidder().getId();
             int alias = userIdAlias.get(bidderId);
-
             boolean isMe = currentUserId.map(id -> id.equals(bidderId)).orElse(false);
 
             return new BidHistoryDTO(bid.getBidSum(), bid.getCreatedAt(), bid.getIsAuto(), alias, isMe);
         }).toList();
-
-
     }
 
     /**
      * Retrieves a list of all active bids for authenticated user
      *
      * @param userId ID of user to fetch bids for
-     * @return {@link MyWonAuctionDTO} contains information about bidding and auction
+     * @return a list of {@link MyWonAuctionDTO} contains information about bidding and auction
      */
     public List<MyActiveBids> getMyActiveBids(Long userId) {
-
-        return bidRepository.findLatestActiveUserBids(userId, AuctionStatus.ACTIVE)
-                            .stream().map(b -> {
-                    boolean isLeading = b.getAuction().getWinningBid()
-                                         .map(leading -> leading.getBidder().getId().equals(userId))
-                                         .orElse(false);
-                    BidStatus status = isLeading ? BidStatus.LEADING : BidStatus.OUTBID;
-                    return bidMapper.toMyRecord(b, status);
-
-                }).toList();
-
-
+        return bidRepository.findLatestActiveUserBids(userId, AuctionStatus.ACTIVE).stream()
+                            .map(b -> {
+                                boolean isLeading = b.getAuction().getWinningBid()
+                                                     .map(leading -> leading.getBidder().getId().equals(userId))
+                                                     .orElse(false);
+                                BidStatus status = isLeading ? BidStatus.LEADING : BidStatus.OUTBID;
+                                return bidMapper.toMyRecord(b, status);
+                            }).toList();
     }
 
+    /**
+     * Places a bid on an auction with automatic retry on optimistic lock failures.
+     *
+     * @param bidRequest The bid details.
+     * @param userId     The ID of the bidder.
+     * @param auctionId  The ID of the auction.
+     * @return A {@link BidResponse} the result of the bidding process.
+     */
     @Retryable(retryFor = {OptimisticLockingFailureException.class},
             backoff = @Backoff(delay = 100)
     )
@@ -102,7 +100,6 @@ public class BidService {
 
         BiddingResult result = auction.placeBid(bidder, amount);
 
-
         // crucial to save winner last for id and created at sorting
         // if bidder was raising with a max bid, new bid is null
         if (result.newBidderLeads()) {
@@ -113,11 +110,8 @@ public class BidService {
             if (result.otherBid() != null) bidRepository.save(result.otherBid());
         }
 
-
         auctionRepository.save(auction);
         return createBidResponse(result, auction);
-
-
     }
 
     public BidResponse createBidResponse(BiddingResult result, Auction auction) {
@@ -126,9 +120,5 @@ public class BidService {
         int bidSum = result.newBid() != null ? result.newBid().getBidSum() : 0;
         Integer maxBidSum = result.maxBid() != null ? result.maxBid().getMaxSum() : null;
         return new BidResponse(bidSum, status, currentHighest, result.isAuto(), maxBidSum);
-
-
     }
-
-
 }

@@ -28,21 +28,17 @@ import java.util.Optional;
 @Getter
 public class Auction extends BaseEntity {
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
-
 
     @OneToOne
     @JoinColumn(name = "winning_bid_id")
     private Bid winningBid;
 
-
     @Builder.Default
     @Enumerated(EnumType.STRING)
     private AuctionStatus status = AuctionStatus.INACTIVE;
-
 
     private Integer acceptedPrice;
 
@@ -67,7 +63,6 @@ public class Auction extends BaseEntity {
         return Optional.ofNullable(winningBid);
     }
 
-
     public BiddingResult placeBid(User bidder, int amount) {
         Instant now = Instant.now();
         checkAuctionIsOpen();
@@ -81,14 +76,11 @@ public class Auction extends BaseEntity {
             int limitToRaise = leadingMaxBid().map(MaxBid::getMaxSum).orElse(winningBid.getBidSum());
             if (amount <= limitToRaise) {
                 throw new IllegalArgumentException("Place a higher bid to raise your bid.");
-
             }
             return handleRaisedBid(bidder, amount);
         }
 
-
         checkNewBidSumIsValid(amount);
-
 
         if (bids.isEmpty() && maxBids.isEmpty()) {
             result = handleFirstBid(bidder, amount);
@@ -98,14 +90,13 @@ public class Auction extends BaseEntity {
             result = handleNormalOverbid(bidder, amount);
         }
 
-        winningBid = result.otherBid() == null ?
-                result.newBid() : result.newBidderLeads() ? result.newBid() : result.otherBid();
-
+        winningBid = result.otherBid() == null
+                ? result.newBid()
+                : result.newBidderLeads() ? result.newBid() : result.otherBid();
 
         softClose(now);
 
         return result;
-
     }
 
     /**
@@ -130,9 +121,7 @@ public class Auction extends BaseEntity {
         );
         bids.add(newBid);
         return new BiddingResult(true, newBid, null, isNewBidMaxBid, maxBid);
-
     }
-
 
     /**
      * Creates a higher max bid for the current leading bidder
@@ -145,7 +134,6 @@ public class Auction extends BaseEntity {
         this.maxBids.add(maxBid);
         return new BiddingResult(true, null, null, true, maxBid);
     }
-
 
     /**
      * Handles bidding if a hidden max bid is activated
@@ -186,9 +174,7 @@ public class Auction extends BaseEntity {
         bids.add(newBid);
         bids.add(generatedBidForHiddenMax);
         return new BiddingResult(newBidLeads, newBid, generatedBidForHiddenMax, isNewBidMaxBid, newMax);
-
     }
-
 
     /**
      * Returns enumerated bid-increment {@link BidTier}.
@@ -201,17 +187,14 @@ public class Auction extends BaseEntity {
 
     public void checkAuctionIsOpen() {
         if (this.endTime.isBefore(Instant.now()) || !this.status.equals(AuctionStatus.ACTIVE)) {
-
             throw new AuctionClosedException("Auction is closed");
         }
     }
-
 
     public void checkNewBidSumIsValid(int bidSum) {
         if (bidSum < minNextBid()) {
             throw new InvalidBidException("Bid is too low. Please raise your bid to participate.");
         }
-
     }
 
     /**
@@ -221,11 +204,8 @@ public class Auction extends BaseEntity {
      * @return true if the bid is a max bid
      */
     public boolean isNewBidMaxBid(int bidSum) {
-
         return bidSum > minNextBid();
-
     }
-
 
     public BiddingResult handleNormalOverbid(User bidder, int amount) {
         boolean isNewBidMaxBid = isNewBidMaxBid(amount);
@@ -245,10 +225,7 @@ public class Auction extends BaseEntity {
         );
         bids.add(bidToPut);
         return new BiddingResult(true, bidToPut, null, isNewBidMaxBid, newMax);
-
-
     }
-
 
     /**
      * Prepares Auction for item.
@@ -260,13 +237,7 @@ public class Auction extends BaseEntity {
     public static Auction prepareAuction(Item item, Integer acceptedPrice) {
         if (item == null || !item.isReadyForAuction()) throw new IllegalArgumentException("Item cannot be null");
         acceptedPrice = acceptedPrice == null ? 0 : acceptedPrice;
-        return Auction.builder()
-                      .item(item)
-                      .acceptedPrice(acceptedPrice)
-                      .status(AuctionStatus.INACTIVE)
-                      .build();
-
-
+        return Auction.builder().item(item).acceptedPrice(acceptedPrice).status(AuctionStatus.INACTIVE).build();
     }
 
     public void updateItem(Item item) {
@@ -291,7 +262,6 @@ public class Auction extends BaseEntity {
         this.status = status;
     }
 
-
     /**
      * Launches Auction for public.
      *
@@ -299,7 +269,6 @@ public class Auction extends BaseEntity {
      * @param endTime   When auction will end. Default 1 week + 1 min interval between auctions
      */
     public Auction launchAuction(Instant startTime, Instant endTime) {
-
         if (startTime == null || endTime == null) {
             throw new IllegalArgumentException("Start and end time must be set.");
         }
@@ -312,7 +281,6 @@ public class Auction extends BaseEntity {
         Instant buffer = now.minus(Duration.ofMinutes(1));
         Instant minEndTime = startTime.plus(24, ChronoUnit.HOURS);
 
-
         if (endTime.isBefore(startTime) || endTime.isBefore(minEndTime) || startTime.isBefore(buffer)) {
             throw new IllegalArgumentException("Invalid start and endtimes.");
         }
@@ -320,20 +288,16 @@ public class Auction extends BaseEntity {
         this.endTime = endTime;
         if (!startTime.isAfter(now)) {
             status = AuctionStatus.ACTIVE;
-
         } else {
             status = AuctionStatus.PLANNED;
         }
         return this;
-
-
     }
 
     /**
      * Soft closes auction when a bid comes in within 1 minute from end time
      */
     public void softClose(Instant now) {
-
         Duration buffer = Duration.ofMinutes(1);
         Instant softCloseThreshold = this.endTime.minus(buffer);
         if (now.isAfter(softCloseThreshold)) {
@@ -341,36 +305,28 @@ public class Auction extends BaseEntity {
         }
     }
 
-
     public int leadingAmount() {
         return winningBid != null ? winningBid.getBidSum() : 0;
-
     }
-
 
     public boolean hiddenMaxBidExists() {
         return this.maxBids.stream().anyMatch(m -> m.getMaxSum() > leadingAmount());
     }
 
-
     public int minNextBid() {
         return leadingAmount() + BidTier.getBidIncrement(this.item.getValuation());
-
     }
 
     public Optional<MaxBid> leadingMaxBid() {
         return maxBids.stream().max(Comparator.comparing(MaxBid::getMaxSum)
-                                              .thenComparing(Comparator.comparing(MaxBid::getCreatedAt).reversed())
-        );
+                                              .thenComparing(Comparator.comparing(MaxBid::getCreatedAt).reversed()));
     }
-
 
     public void closeSoldAuction(Bid winningBid) {
         if (winningBid == null) {
             throw new IllegalArgumentException("Winning bid is required to close auction as SOLD.");
         }
         this.status = AuctionStatus.SOLD;
-
     }
 
     public void closeExpiredAuction() {
@@ -381,13 +337,9 @@ public class Auction extends BaseEntity {
         this.status = AuctionStatus.EXPIRED;
     }
 
-
     public boolean isReadyToLaunch() {
         return item != null && item.isReadyForAuction() && acceptedPrice != null && acceptedPrice >= 0 && status == AuctionStatus.INACTIVE;
-
     }
-
-
 }
 
 

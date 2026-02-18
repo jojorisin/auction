@@ -2,7 +2,6 @@ package se.jensen.johanna.auctionsite.dto;
 
 import java.time.Instant;
 
-
 public record BidHistoryDTO(
         Integer bidSum,
         Instant createdAt,
@@ -10,5 +9,4 @@ public record BidHistoryDTO(
         Integer bidderAlias,
         boolean isMe
 ) {
-
 }

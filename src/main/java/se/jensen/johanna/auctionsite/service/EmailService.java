@@ -15,8 +15,6 @@ import se.jensen.johanna.auctionsite.dto.EmailTypeDTO;
 public class EmailService {
     private final JavaMailSender mailSender;
 
-
-    // skapa länkar html
     @Async
     public void sendEmail(EmailTypeDTO emailDTO) {
         try {
@@ -25,22 +23,18 @@ public class EmailService {
             switch (emailDTO.status()) {
                 case WON:
                     helper.setSubject("Congratulations! You won");
-                    helper.setText("Congratulations! You won auction " + emailDTO.title()
-                            + " " + emailDTO.imageUrl() + ". Find payment and transport options under My Wins");
+                    helper.setText("Congratulations! You won auction " + emailDTO.title() + " " + emailDTO.imageUrl() + ". Find payment and transport options under My Wins");
                     break;
                 case OUTBID:
                     helper.setSubject("You were outbid.");
-                    helper.setText("You were outbid on auction "
-                            + emailDTO.title() + " " + emailDTO.imageUrl());
+                    helper.setText("You were outbid on auction " + emailDTO.title() + " " + emailDTO.imageUrl());
                     break;
             }
 
             helper.setTo(emailDTO.email());
             mailSender.send(message);
         } catch (MessagingException | MailException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
-
     }
-//skapa mailserver
 }

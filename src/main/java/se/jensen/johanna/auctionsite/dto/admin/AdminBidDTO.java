@@ -9,7 +9,5 @@ public record AdminBidDTO(
         Integer maxBid,
         Instant autoTimestamp,
         Instant createdAt
-
-
 ) {
 }

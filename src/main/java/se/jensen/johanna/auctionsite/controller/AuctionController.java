@@ -36,19 +36,13 @@ public class AuctionController {
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) Category.SubCategory subCategory
     ) {
-
         return ResponseEntity.ok().body(auctionService.getAllActiveAuctions(category, subCategory, pageable));
     }
 
-
     @GetMapping("/{auctionId}")
     public ResponseEntity<AuctionDTO> getAuction(@PathVariable Long auctionId) {
-
         return ResponseEntity.ok(auctionService.getActiveAuction(auctionId));
-
-
     }
-
 
     @GetMapping("/categories")
     public ResponseEntity<List<Category>> getCategories() {
@@ -64,6 +58,4 @@ public class AuctionController {
                                                                         ));
         return ResponseEntity.ok(subCategories);
     }
-
-
 }

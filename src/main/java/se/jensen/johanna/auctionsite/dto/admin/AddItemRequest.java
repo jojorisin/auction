@@ -7,7 +7,7 @@ import se.jensen.johanna.auctionsite.model.enums.Category;
 import java.util.List;
 
 public record AddItemRequest(
-        @NotNull(message = "Seller id cant be empty")
+        @NotNull(message = "Seller id is required")
         Long sellerId,
 
         @Schema(implementation = Category.class, description = "Category of item", example = "ART")
@@ -23,9 +23,10 @@ public record AddItemRequest(
 
         @NotNull(message = "Please enter a description of object")
         String description,
+
         @NotNull(message = "Please enter a valuation")
         Integer valuation,
-        List<String> imageUrls
 
+        List<String> imageUrls
 ) {
 }

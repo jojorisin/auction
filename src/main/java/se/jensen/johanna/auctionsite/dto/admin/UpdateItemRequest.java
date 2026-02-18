@@ -4,7 +4,6 @@ import se.jensen.johanna.auctionsite.model.enums.Category;
 
 import java.util.List;
 
-
 public record UpdateItemRequest(
         Category category,
         Category.SubCategory subCategory,
@@ -12,6 +11,4 @@ public record UpdateItemRequest(
         String description,
         Integer valuation,
         List<String> imageUrls) {
-
-
 }

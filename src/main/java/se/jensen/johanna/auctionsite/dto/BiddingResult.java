@@ -18,6 +18,5 @@ public record BiddingResult(
         Bid otherBid,
         boolean isAuto,
         MaxBid maxBid
-
 ) {
 }

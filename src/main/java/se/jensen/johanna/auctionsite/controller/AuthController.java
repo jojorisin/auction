@@ -29,12 +29,8 @@ public class AuthController {
     public ResponseEntity<LoginResponse> registerUser(
             @RequestBody @Valid RegisterUserRequest registerRequest
     ) {
-
         userService.registerUser(registerRequest);
-
         LoginResult result = authService.login(new LoginRequest(registerRequest.email(), registerRequest.password()));
-
-
         ResponseCookie responseCookie = cookieUtils.createRefreshTokenCookie(result.refreshToken());
         return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, responseCookie.toString())
                              .body(result.loginResponse());
@@ -44,10 +40,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(
             @RequestBody @Valid LoginRequest loginRequest
     ) {
-
         LoginResult result = authService.login(loginRequest);
-
-
         ResponseCookie responseCookie = cookieUtils.createRefreshTokenCookie(result.refreshToken());
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString())
                              .body(result.loginResponse());
@@ -57,18 +50,9 @@ public class AuthController {
     public ResponseEntity<RefreshResponse> refresh(
             @CookieValue(name = "refreshToken") String oldRefreshStr
     ) {
-
         RefreshResult result = authService.refresh(oldRefreshStr);
         ResponseCookie responseCookie = cookieUtils.createRefreshTokenCookie(result.refreshToken());
-
-
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString()).
-                             body(new RefreshResponse(result.accessToken()));
-
-
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                             .body(new RefreshResponse(result.accessToken()));
     }
-
-    //logout
-
-
 }

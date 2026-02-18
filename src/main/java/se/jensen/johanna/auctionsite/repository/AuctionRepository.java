@@ -18,11 +18,9 @@ import java.util.Optional;
 @Repository
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
-
     @Query("SELECT a FROM Auction a WHERE a.endTime<:now " +
             "AND (a.status='ACTIVE')")
     List<Auction> findEndedAuctionsWithBid(@Param("now") Instant now);
-
 
     @Query("SELECT a FROM Auction a WHERE a.status='ACTIVE'" +
             " AND ( :category IS NULL OR a.item.category=:category ) " +
@@ -32,7 +30,6 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
             @Param("subCategory") Category.SubCategory subCategory,
             Pageable pageable
     );
-
 
     @Query("SELECT a FROM Auction a WHERE a.winningBid.bidder.id=:userId AND a.status='SOLD'")
     List<Auction> findWonAuctionsByUserId(@Param("userId") Long userId);

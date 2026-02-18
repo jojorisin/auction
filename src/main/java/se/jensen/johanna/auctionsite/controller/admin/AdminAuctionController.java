@@ -13,13 +13,12 @@ import se.jensen.johanna.auctionsite.service.AuctionService;
 import java.time.Instant;
 import java.util.List;
 
-@PreAuthorize("hasRole('ADMIN') ")
+@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequestMapping("/admin/auctions")
 @RequiredArgsConstructor
 public class AdminAuctionController {
     private final AuctionService auctionService;
-
 
     @GetMapping
     public ResponseEntity<List<AdminAuctionResponse>> getAllAuctions() {
@@ -32,10 +31,8 @@ public class AdminAuctionController {
     public ResponseEntity<AdminAuctionResponse> getAuction(@PathVariable Long auctionId) {
         AdminAuctionResponse auctionResponse = auctionService.getAuction(auctionId);
         return ResponseEntity.ok(auctionResponse);
-
     }
 
-    //@PermitAll
     @PostMapping
     public ResponseEntity<AdminAuctionResponse> addAuction(@RequestBody CreateAuctionRequest request) {
         AdminAuctionResponse response = auctionService.createAuctionForItem(request);
@@ -49,8 +46,6 @@ public class AdminAuctionController {
             @RequestParam(name = "endTime", required = false) Instant endTime
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(auctionService.launchBatch(size, startTime, endTime));
-
-
     }
 
     @PostMapping("/{auctionId}/launch")
@@ -59,7 +54,6 @@ public class AdminAuctionController {
             @RequestBody @Valid ManualLaunchRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(auctionService.manualLaunch(auctionId, request));
-
     }
 
     @PutMapping("/{auctionId}")
@@ -69,14 +63,11 @@ public class AdminAuctionController {
     ) {
         AdminAuctionResponse response = auctionService.updateAuction(auctionId, request);
         return ResponseEntity.ok().body(response);
-
     }
 
     @DeleteMapping("/{auctionId}")
     public ResponseEntity<Void> deleteAuction(@PathVariable Long auctionId) {
         auctionService.deleteAuction(auctionId);
         return ResponseEntity.noContent().build();
-
     }
-
 }

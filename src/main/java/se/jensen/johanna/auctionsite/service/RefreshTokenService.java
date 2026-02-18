@@ -1,6 +1,5 @@
 package se.jensen.johanna.auctionsite.service;
 
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,32 +22,25 @@ public class RefreshTokenService {
     private long refreshTokenDurationMs;
 
     private final RefreshTokenRepository refreshTokenRepository;
+
     private final UserRepository userRepository;
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }
 
-
     public RefreshToken createRefreshToken(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         refreshTokenRepository.deleteByUser(user);
         refreshTokenRepository.flush();
-
-
         return refreshTokenRepository.save(RefreshToken.create(user, refreshTokenDurationMs));
-
-
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {
-
         if (token.isExpired()) {
             refreshTokenRepository.delete(token);
             throw new RefreshTokenException("Refresh token has expired. Please Log in again.");
         }
         return token;
-
     }
-
 }

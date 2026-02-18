@@ -1,6 +1,5 @@
 package se.jensen.johanna.auctionsite.model;
 
-
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,12 +33,9 @@ public class RefreshToken extends BaseEntity {
                            .expiryDate(Instant.now().plusMillis(durationMs))
                            .token(UUID.randomUUID().toString())
                            .build();
-
     }
 
     public boolean isExpired() {
         return Instant.now().isAfter(this.getExpiryDate());
     }
-
-
 }

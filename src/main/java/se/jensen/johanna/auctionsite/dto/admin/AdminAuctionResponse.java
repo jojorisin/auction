@@ -4,7 +4,6 @@ import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 
 import java.time.Instant;
 
-
 public record AdminAuctionResponse(
         AdminItemDTO adminItemDTO,
         Long auctionId,
@@ -12,5 +11,4 @@ public record AdminAuctionResponse(
         AuctionStatus status,
         int acceptedPrice,
         Instant endTime) {
-
 }

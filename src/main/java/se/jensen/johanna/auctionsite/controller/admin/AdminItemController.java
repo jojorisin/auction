@@ -25,39 +25,27 @@ public class AdminItemController {
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) Category.SubCategory subCategory
     ) {
-        
         return ResponseEntity.ok(itemService.findAllItems(category, subCategory));
-
     }
 
     @GetMapping("/{itemId}")
     public ResponseEntity<AdminItemDTO> getItem(@PathVariable Long itemId) {
         return ResponseEntity.ok(itemService.findItem(itemId));
-
     }
 
     @PostMapping
     public ResponseEntity<AdminItemDTO> addItem(@RequestBody AddItemRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addItem(request));
-
     }
 
     @PutMapping("/{itemId}")
-    public ResponseEntity<AdminItemDTO> editItem(
-            @PathVariable Long itemId,
-            @RequestBody UpdateItemRequest request
-    ) {
-
+    public ResponseEntity<AdminItemDTO> editItem(@PathVariable Long itemId, @RequestBody UpdateItemRequest request) {
         return ResponseEntity.ok(itemService.updateItem(request, itemId));
-
     }
 
     @DeleteMapping("/{itemId}")
     public ResponseEntity<Void> deleteItem(@PathVariable Long itemId) {
         itemService.deleteItem(itemId);
         return ResponseEntity.noContent().build();
-
     }
-
-
 }

@@ -15,6 +15,5 @@ public record EmailTypeDTO(
         Long auctionId,
         String imageUrl,
         String title
-
 ) {
 }

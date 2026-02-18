@@ -26,17 +26,13 @@ public class UserService {
 
     public void registerUser(RegisterUserRequest userDto) {
         if (userRepository.existsByEmail(userDto.email())) {
-            throw new UserAlreadyExistsException(
-                    "Account is already registered with this email. Please try to login.");
+            throw new UserAlreadyExistsException("Account is already registered with this email. Please try to login.");
         }
-
         if (!userDto.confirmPassword().equals(userDto.password())) {
             throw new PasswordMisMatchException("Passwords do not match. Please try again.");
         }
         String hashedPassword = passwordEncoder.encode(userDto.password());
         userRepository.save(User.register(userDto.email(), hashedPassword, Role.MEMBER));
-
-
     }
 
     public AppUserDTO getAuthenticatedUser(Long userId) {
@@ -48,25 +44,21 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(passwordDTO.oldPassword(), user.getHashedPassword())
-                || !passwordDTO.newPassword().equals(passwordDTO.confirmNewPassword())) {
+                || !passwordDTO.newPassword()
+                               .equals(passwordDTO.confirmNewPassword())) {
             throw new PasswordMisMatchException("Passwords do not match. Please try again.");
         }
         String newHashedPw = passwordEncoder.encode(passwordDTO.newPassword());
         user.changePassword(newHashedPw);
 
         return new ResponseMessage("Password has been updated successfully.");
-
-
     }
 
     public AppUserDTO updateContactInfo(Long userId, ContactInfoRequest request) {
         User user = getUserOrThrow(userId);
         user.changeContactInfo(request.phoneNr());
-
         return userMapper.toAppUserDTO(user);
-
     }
-
 
     public AddressResponse updateAddress(Long userId, AddressRequest dto) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
@@ -82,17 +74,10 @@ public class UserService {
                                     .country(dto.country()).build();
 
         user.changeAddress(newAddress);
-
         return userMapper.toAddressResponse(user);
-
-
     }
-
 
     private User getUserOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                             .orElseThrow(UserNotFoundException::new);
+        return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     }
-
-
 }

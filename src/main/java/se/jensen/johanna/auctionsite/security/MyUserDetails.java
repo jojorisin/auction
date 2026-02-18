@@ -12,7 +12,6 @@ import java.util.List;
 public class MyUserDetails implements UserDetails {
     private final User user;
 
-
     public MyUserDetails(User user) {
         this.user = user;
     }
@@ -55,7 +54,6 @@ public class MyUserDetails implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
 
     public Role getRole() {
         return user.getRole();

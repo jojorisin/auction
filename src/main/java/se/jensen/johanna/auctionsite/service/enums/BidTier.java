@@ -2,8 +2,12 @@ package se.jensen.johanna.auctionsite.service.enums;
 
 import lombok.Getter;
 
+/**
+ * Defines the bid tier based on the items valuation
+ */
 @Getter
 public enum BidTier {
+
     TIER_1(0, 999, 50),
     TIER_2(1000, 4999, 100),
     TIER_3(5000, 9999, 200),
@@ -19,7 +23,6 @@ public enum BidTier {
         this.minVal = minVal;
         this.maxVal = maxVal;
         this.increment = increment;
-
     }
 
     public static int getBidIncrement(int valuation) {
@@ -27,10 +30,7 @@ public enum BidTier {
             if (valuation >= tier.minVal && valuation <= tier.maxVal) {
                 return tier.increment;
             }
-
         }
         throw new IllegalArgumentException(String.format("No matching bid tier for valuation: %d", valuation));
     }
-
-
 }

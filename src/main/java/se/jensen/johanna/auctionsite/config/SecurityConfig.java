@@ -47,35 +47,31 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigin;
 
-
-    //change endpoints
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .cors(org.springframework.security.config.Customizer.withDefaults())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(
-                        auth -> auth
-                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers(
-                                        "/v3/api-docs",
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html"
-                                ).permitAll()
-                                .requestMatchers("/auth/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/auctions/**").permitAll()
-                                .requestMatchers("/auth/register/admin").hasRole("ADMIN")
-                                .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwt ->
-                                jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
+        http.csrf(csrf -> csrf.disable())
+            .cors(org.springframework.security.config.Customizer.withDefaults())
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(
+                    auth -> auth
+                            .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                            .requestMatchers(
+                                    "/v3/api-docs",
+                                    "/v3/api-docs/**",
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html"
+                            ).permitAll()
+                            .requestMatchers("/auth/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/auctions/**").permitAll()
+                            .requestMatchers("/auth/register/admin").hasRole("ADMIN")
+                            .anyRequest().authenticated())
+            .oauth2ResourceServer(oauth2 ->
+                    oauth2.jwt(jwt ->
+                            jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -87,7 +83,6 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(allowedOrigin.split(",")));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        //configuration.setAllowedHeaders(Collections.singletonList("*"));
         configuration.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type",
@@ -116,7 +111,6 @@ public class SecurityConfig {
                 new X509EncodedKeySpec(publicBytes)
         );
         return new KeyPair(pubKey, privKey);
-
     }
 
     @Bean
@@ -129,8 +123,6 @@ public class SecurityConfig {
         JWKSet jwkSet = new JWKSet(rsaKey);
 
         return (jwkSelector, context) -> jwkSelector.select(jwkSet);
-
-
     }
 
     @Bean
@@ -163,5 +155,4 @@ public class SecurityConfig {
     ) throws Exception {
         return configuration.getAuthenticationManager();
     }
-
 }

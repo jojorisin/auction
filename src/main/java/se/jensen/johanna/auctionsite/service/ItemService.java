@@ -25,18 +25,13 @@ public class ItemService {
     private final UserRepository userRepository;
     private final ItemMapper itemMapper;
 
-
     public List<AdminItemDTO> findAllItems(Category category, Category.SubCategory subCategory) {
         List<Item> items = itemRepository.findAllItems(category, subCategory);
-
         return items.stream().map(itemMapper::toRecord).toList();
-
-
     }
 
     public AdminItemDTO findItem(Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
-
         return itemMapper.toRecord(item);
     }
 
@@ -50,13 +45,9 @@ public class ItemService {
                 request.description(),
                 request.valuation(),
                 request.imageUrls()
-
         );
-
         itemRepository.save(item);
         return itemMapper.toRecord(item);
-
-
     }
 
     public AdminItemDTO updateItem(UpdateItemRequest dto, Long itemId) {
@@ -77,5 +68,4 @@ public class ItemService {
         Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
         itemRepository.delete(item);
     }
-
 }

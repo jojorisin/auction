@@ -14,9 +14,6 @@ import se.jensen.johanna.auctionsite.model.Auction;
         uses = {ItemMapper.class, BidMapper.class})
 public interface AuctionMapper {
 
-
-    //***********PUBLIC MAPPERS******
-
     @Mapping(target = "auctionId", source = "id")
     @Mapping(target = "imageUrls", source = "auction.item.imageUrls")
     @Mapping(target = "title", source = "auction.item.title")
@@ -24,26 +21,17 @@ public interface AuctionMapper {
     @Mapping(target = "highestBid", expression = "java(auction.leadingAmount())")
     AuctionsListDTO toAuctionsList(Auction auction);
 
-
-    //***********MY MAPPERS*************
+    @Mapping(target = "itemDTO", source = "auction.item")
+    AuctionDTO toAuctionDTO(Auction auction);
 
     @Mapping(target = "auctionId", source = "id")
     @Mapping(target = "highestBid", expression = "java(auction.leadingAmount())")
     @Mapping(target = "title", source = "auction.item.title")
     MyWonAuctionDTO toMyWonAuction(Auction auction);
 
-    //************ADMIN MAPPERS**********
-
-    //Auction toEntity(CreateAuctionRequest dto);
-
-
-    @Mapping(target = "itemDTO", source = "auction.item")
-    AuctionDTO toAuctionDTO(Auction auction);
-
     @Mapping(target = "auctionId", source = "auction.id")
     @Mapping(target = "adminItemDTO", source = "auction.item")
     ManualLaunchResponse toManualLaunchResponse(Auction auction);
-
 
     @Mapping(target = "auctionId", source = "id")
     @Mapping(target = "adminItemDTO", source = "item")

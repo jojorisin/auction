@@ -13,7 +13,6 @@ import java.util.List;
  * @param valuation  Valuation of the item
  * @param highestBid Current highest bid
  */
-
 public record AuctionsListDTO(
         Long auctionId,
         List<String> imageUrls,
@@ -21,7 +20,5 @@ public record AuctionsListDTO(
         Instant endTime,
         Integer valuation,
         Integer highestBid
-
-
 ) {
 }

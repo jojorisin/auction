@@ -11,6 +11,5 @@ public record ItemDTO(
         String title,
         String description,
         List<String> imageUrls
-
 ) {
 }

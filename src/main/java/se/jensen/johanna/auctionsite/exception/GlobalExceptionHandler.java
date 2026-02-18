@@ -21,8 +21,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ErrorResponse> handleDomainException(DomainException e) {
         return buildErrorResponse(e);
-
-
     }
 
     @ExceptionHandler(Exception.class)
@@ -35,7 +33,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Concurrent modification detected"));
     }
 
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationError(MethodArgumentNotValidException e) {
         Map<String, String> errors = new HashMap<>();
@@ -43,10 +40,8 @@ public class GlobalExceptionHandler {
             String fieldName = fieldError.getField();
             String message = fieldError.getDefaultMessage();
             errors.put(fieldName, message);
-
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-
     }
 
     public ResponseEntity<ErrorResponse> buildErrorResponse(Exception e) {
@@ -58,8 +53,5 @@ public class GlobalExceptionHandler {
                 e.getMessage(),
                 Instant.now()
         ));
-
     }
-
-
 }

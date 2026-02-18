@@ -18,8 +18,8 @@ import se.jensen.johanna.auctionsite.model.enums.Role;
 @Getter
 public class User extends BaseEntity {
 
-    @NotNull
     @Column(nullable = false, unique = true, updatable = false)
+    @NotNull
     private String email;
 
     @Column(nullable = false)
@@ -27,11 +27,11 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-
-    @NotNull
     @Column(nullable = false)
+    @NotNull
     private String hashedPassword;
 
+    //create value object money?
     private int payments;
 
     private String phoneNr;
@@ -39,9 +39,7 @@ public class User extends BaseEntity {
     @Embedded
     private Address address;
 
-
     public static User register(String email, String hashedPassword, Role role) {
-
         if (email == null || email.isBlank()) throw new IllegalArgumentException("Email required.");
         if (hashedPassword == null || hashedPassword.isBlank())
             throw new IllegalArgumentException("Password required.");
@@ -56,17 +54,13 @@ public class User extends BaseEntity {
 
     public void changePassword(@NonNull String hashedPassword) {
         this.hashedPassword = hashedPassword;
-
     }
 
     public void changeContactInfo(@NonNull String rawPhoneNr) {
-
         String cleanPhoneNr = rawPhoneNr.trim().replaceAll("[^0-9+]", "");
         if (cleanPhoneNr.isEmpty()) {
             throw new InvalidPhoneNumberException("Please enter a valid phone number.");
         }
         this.phoneNr = cleanPhoneNr;
     }
-
-
 }

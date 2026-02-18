@@ -31,15 +31,12 @@ class AuctionTest {
     @BeforeEach
     void setUp() {
         item = TestDataFactory.createItem(ITEM_ID, 10000);
-
         auction = TestDataFactory.createActiveAuction(AUCTION_ID, item);
         currentBidder = TestDataFactory.createUser(BIDDER_ID);
         competingBidder = TestDataFactory.createUser(OTHER_BIDDER_ID);
-
         increment = BidTier.getBidIncrement(item.getValuation());
         normalBidAmount = increment;
         maxBidAmount = increment * 3;
-
     }
 
     @Test
@@ -53,8 +50,6 @@ class AuctionTest {
         assertThat(auction.getMaxBids()).isEmpty();
         assertThat(result.isAuto()).isFalse();
         assertThat(result.newBid().getBidSum()).isEqualTo(increment);
-
-
     }
 
     @Test
@@ -66,13 +61,11 @@ class AuctionTest {
         assertThat(auction.getMaxBids()).hasSize(1);
         assertThat(result.maxBid()).isNotNull();
         assertThat(result.newBid()).isNotNull();
-
     }
 
     @Test
     @DisplayName("when raising bid with current normal bid, should create new max bid and not put bid")
     void whenRaised_shouldCreateMaxBid_andNotPutBid_whenCurrentIsNormalBid() {
-
         BiddingResult firstResult = auction.placeBid(currentBidder, normalBidAmount);
         BiddingResult raisedResult = auction.placeBid(currentBidder, maxBidAmount);
 
@@ -80,13 +73,11 @@ class AuctionTest {
         assertThat(raisedResult.maxBid()).isNotNull();
         assertThat(raisedResult.newBid()).isNull();
         assertThat(auction.getWinningBid().get()).isEqualTo(firstResult.newBid());
-
     }
 
     @Test
     @DisplayName("when raising bid with current max bid, should create a new max bid and not put bid ")
     void whenRaised_shouldCreateMaxBid_andNotPutBidWhenCurrentIsMaxBid() {
-
         BiddingResult firstResult = auction.placeBid(currentBidder, maxBidAmount);
         BiddingResult raisedResult = auction.placeBid(currentBidder, maxBidAmount + 1);
 
@@ -95,21 +86,17 @@ class AuctionTest {
         assertThat(raisedResult.maxBid()).isNotNull();
         assertThat(raisedResult.newBid()).isNull();
         assertThat(auction.getWinningBid().get()).isEqualTo(firstResult.newBid());
-
-
     }
 
     @Test
     @DisplayName("Should generate bid from first max bid when triggered")
     void shouldActivateHiddenMaxBid_AndGenerateBidForHiddenMax() {
-
         BiddingResult result1 = auction.placeBid(competingBidder, maxBidAmount);
 
         assertThat(auction.getBids()).hasSize(1);
         assertThat(auction.getMaxBids()).hasSize(1);
 
         int currentHighest = result1.newBid().getBidSum();
-
         BiddingResult result2 = auction.placeBid(currentBidder, currentHighest + increment);
 
         assertThat(auction.getBids()).hasSize(3);
@@ -117,8 +104,6 @@ class AuctionTest {
         assertThat(result2.otherBid().getBidder()).isEqualTo(competingBidder);
         assertThat(auction.getWinningBid().get().getBidder()).isEqualTo(competingBidder);
         assertThat(result2.newBidderLeads()).isFalse();
-
-
     }
 
     @Test
@@ -163,11 +148,9 @@ class AuctionTest {
         );
         auction2.placeBid(currentBidder, normalBidAmount);
 
-
         Instant expectedTime = now.plus(1, ChronoUnit.MINUTES);
 
         assertThat(auction2.getEndTime()).isCloseTo(expectedTime, within(1, ChronoUnit.SECONDS));
         assertThat(auction2.getEndTime()).isAfter(originalEndTime);
-
     }
 }

@@ -33,7 +33,6 @@ public class AuctionService {
     private final AuctionMapper auctionMapper;
     private final ItemRepository itemRepository;
 
-
     //       *****************ADMIN***********
 
     /**
@@ -41,11 +40,8 @@ public class AuctionService {
      *
      * @return a list of {@link AdminAuctionResponse} containing all auctions.
      */
-
     public List<AdminAuctionResponse> findAllAuctions() {
-        return auctionRepository.findAll()
-                                .stream().map(auctionMapper::toAdminRecord).toList();
-
+        return auctionRepository.findAll().stream().map(auctionMapper::toAdminRecord).toList();
     }
 
     /**
@@ -58,8 +54,6 @@ public class AuctionService {
     public AdminAuctionResponse getAuction(Long auctionId) {
         Auction auction = getAuctionOrThrow(auctionId);
         return auctionMapper.toAdminRecord(auction);
-
-
     }
 
     /**
@@ -73,15 +67,13 @@ public class AuctionService {
         Item item = itemRepository.findById(dto.itemId()).orElseThrow(NotFoundException::new);
         if (auctionRepository.existsByItemIdAndStatusActiveOrInactive(item.getId())) {
             throw new IllegalStateException(String.format(
-                    "Auction already exists for for item with id %d",
+                    "Auction already exists for item with id %d",
                     item.getId()
             ));
         }
         Auction auction = Auction.prepareAuction(item, dto.acceptedPrice());
         auctionRepository.save(auction);
         return auctionMapper.toAdminRecord(auction);
-
-
     }
 
     /**
@@ -103,7 +95,6 @@ public class AuctionService {
         );
 
         int minutesToAdd = 0;
-
         int successfulLaunches = 0;
         int failedLaunches = 0;
         List<FailedToLaunch> failed = new ArrayList<>();
@@ -117,10 +108,8 @@ public class AuctionService {
             a.launchAuction(startTime, individualEndTime);
             minutesToAdd++;
             successfulLaunches++;
-
         }
         auctionRepository.saveAll(auctionsToLaunch);
-
         return new LaunchBatchResponse(successfulLaunches, failedLaunches, failed);
     }
 
@@ -128,18 +117,16 @@ public class AuctionService {
         Instant startTime = request.startTime() != null ? request.startTime() : Instant.now();
         Instant endTime = request.endTime() != null ? request.endTime() : startTime.plus(7, ChronoUnit.DAYS);
 
-
         Auction auction = getAuctionOrThrow(auctionId);
         if (auctionRepository.existsByItemIdAndStatusActiveOrInactive(auction.getItem().getId())) {
             throw new IllegalStateException(String.format(
-                    "Auction already exists for for item with id %d",
+                    "Auction already exists for item with id %d",
                     auction.getItem().getId()
             ));
         }
         auction.launchAuction(startTime, endTime);
         auctionRepository.save(auction);
         return auctionMapper.toManualLaunchResponse(auction);
-
     }
 
     /**
@@ -150,7 +137,6 @@ public class AuctionService {
      * @return the {@link AdminAuctionResponse} of the updated auction.
      * @throws NotFoundException if no auction is found with the given ID.
      */
-
     public AdminAuctionResponse updateAuction(Long auctionId, UpdateAuctionRequest request) {
         Auction auction = getAuctionOrThrow(auctionId);
 
@@ -167,8 +153,6 @@ public class AuctionService {
 
         auctionRepository.save(auction);
         return auctionMapper.toAdminRecord(auction);
-
-
     }
 
     /**
@@ -177,15 +161,12 @@ public class AuctionService {
      * @param auctionId the ID of the auction to delete.
      * @throws NotFoundException if no auction is found with the given ID.
      */
-
     public void deleteAuction(Long auctionId) {
         Auction auction = getAuctionOrThrow(auctionId);
         auctionRepository.delete(auction);
     }
 
-
     //*****************PUBLIC**********
-
 
     /**
      * Retrieves an active auction with public details, including item info and bid history.
@@ -194,11 +175,9 @@ public class AuctionService {
      * @return the {@link AuctionDTO} containing auction, item, and bid information.
      * @throws NotFoundException if no auction is found with the given ID.
      */
-
     public AuctionDTO getActiveAuction(Long auctionId) {
         Auction auction = getAuctionOrThrow(auctionId);
         return auctionMapper.toAuctionDTO(auction);
-
     }
 
     /**
@@ -209,20 +188,13 @@ public class AuctionService {
      * @param subCategory the subcategory to filter by (optional).
      * @return a list of {@link AuctionsListDTO} representing the active auctions.
      */
-
     public Page<AuctionsListDTO> getAllActiveAuctions(
             Category category,
             Category.SubCategory subCategory,
             Pageable pageable
     ) {
-
-
-        return auctionRepository.findActiveAuctions(category, subCategory, pageable)
-                                .map(auctionMapper::toAuctionsList);
-
-
+        return auctionRepository.findActiveAuctions(category, subCategory, pageable).map(auctionMapper::toAuctionsList);
     }
-
 
     /**
      * Retrieves a list of all auctions where status is SOLD, and the current user has the highest bid
@@ -231,20 +203,14 @@ public class AuctionService {
      * @return List of won auctions
      */
     public List<MyWonAuctionDTO> getMyWonAuctions(Long userId) {
-
-        return auctionRepository.findWonAuctionsByUserId(userId).stream()
-                                .map(auctionMapper::toMyWonAuction).toList();
-
-
+        return auctionRepository.findWonAuctionsByUserId(userId).stream().map(auctionMapper::toMyWonAuction).toList();
     }
-
 
     private Auction getAuctionOrThrow(Long auctionId) {
-        return auctionRepository.findById(auctionId).orElseThrow(() ->
-                new NotFoundException(String.format("Auction with id %d not found", auctionId)));
-
+        return auctionRepository.findById(auctionId).orElseThrow(() -> new NotFoundException(String.format(
+                "Auction with id %d not found",
+                auctionId
+        )));
     }
-
-
 }
 
