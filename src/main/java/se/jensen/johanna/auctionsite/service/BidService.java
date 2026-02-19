@@ -82,8 +82,8 @@ public class BidService {
         List<Long> auctionIds = userBids.stream().map(Bid::getAuction).map(Auction::getId).toList();
         List<Object[]> maxSumResult = maxBidRepository.findMaxBidSumByAuctionAndUser_IdIn(userId, auctionIds);
         Map<Long, Integer> maxBidSums = maxSumResult.stream().collect(Collectors.toMap(
-                row -> (Long) row[0],
-                row -> (Integer) row[1]
+                row -> ((Number) row[0]).longValue(),
+                row -> ((Number) row[1]).intValue()
         ));
 
         return userBids.stream().map(b -> {
