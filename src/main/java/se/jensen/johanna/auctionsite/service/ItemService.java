@@ -52,14 +52,26 @@ public class ItemService {
 
     public AdminItemDTO updateItem(UpdateItemRequest dto, Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
-        item.update(
-                dto.category(),
-                dto.subCategory(),
-                dto.title(),
-                dto.description(),
-                dto.valuation(),
-                dto.imageUrls()
-        );
+        
+        if (dto.category() != null && dto.subCategory() != null) {
+            item.updateCategories(dto.category(), dto.subCategory());
+        }
+        if (dto.title() != null) {
+            item.updateTitle(dto.title());
+        }
+        if (dto.description() != null) {
+            item.updateDescription(dto.description());
+        }
+        if (dto.valuation() != null) {
+            item.updateValuation(dto.valuation());
+        }
+        if (dto.imageUrls() != null) {
+            item.updateImageUrls(dto.imageUrls());
+        }
+        if (dto.imageUrl() != null) {
+            item.addImage(dto.imageUrl());
+        }
+
         itemRepository.save(item);
         return itemMapper.toRecord(item);
     }

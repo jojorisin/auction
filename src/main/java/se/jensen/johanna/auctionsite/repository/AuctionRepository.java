@@ -37,8 +37,11 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @EntityGraph(attributePaths = {"item"})
     Page<Auction> findByStatusOrderByCreatedAtAsc(AuctionStatus status, Pageable pageable);
 
-    @Query("SELECT COUNT (a)>0 FROM Auction a WHERE a.item.id=:itemId AND (a.status='ACTIVE' OR a.status='INACTIVE')")
-    boolean existsByItemIdAndStatusActiveOrInactive(Long itemId);
+    @Query("SELECT COUNT (a)>0 FROM Auction a WHERE a.item.id=:itemId AND (a.status='ACTIVE' OR a.status='PLANNED')")
+    boolean existsByItemIdAndStatusActiveOrPlanned(Long itemId);
+
+    @Query("SELECT COUNT(a)>0 FROM Auction a WHERE a.item.id=:itemId")
+    boolean existsByItemId(Long itemId);
 
     @EntityGraph(attributePaths = {"bids.bidder"})
     Optional<Auction> findWithBidsAndBiddersById(Long auctionId);

@@ -23,9 +23,25 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(e);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
-        return buildErrorResponse(e);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(
+                400, e.getClass().getSimpleName(), e.getMessage(), Instant.now()
+        ));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(
+                409, e.getClass().getSimpleName(), e.getMessage(), Instant.now()
+        ));
+    }
+    
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointer(NullPointerException e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(
+                500, e.getClass().getSimpleName(), "An unexpected error occurred", Instant.now()
+        ));
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)
@@ -42,6 +58,11 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, message);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        return buildErrorResponse(e);
     }
 
     public ResponseEntity<ErrorResponse> buildErrorResponse(Exception e) {

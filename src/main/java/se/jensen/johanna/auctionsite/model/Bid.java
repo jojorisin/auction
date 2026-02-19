@@ -1,8 +1,8 @@
 package se.jensen.johanna.auctionsite.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -28,11 +28,11 @@ public class Bid extends BaseEntity {
     @JoinColumn(name = "bidder_id", nullable = false)
     private User bidder;
 
-    @NotNull
     @Column(name = "bid_sum", nullable = false, updatable = false)
     private Integer bidSum;
 
-    private Boolean isAuto;
+    @Builder.Default
+    private Boolean isAuto = false;
 
     /**
      * Creates a new normal bid
@@ -44,6 +44,7 @@ public class Bid extends BaseEntity {
      * @return A new bid
      */
     public static Bid createBid(Auction auction, User bidder, int bidSum) {
+        validateBid(auction, bidder, bidSum);
         return Bid.builder()
                   .auction(auction)
                   .bidder(bidder)
@@ -53,11 +54,18 @@ public class Bid extends BaseEntity {
     }
 
     public static Bid generateBidFromMaxBid(Auction auction, User bidder, int bidSum) {
+        validateBid(auction, bidder, bidSum);
         return Bid.builder()
                   .auction(auction)
                   .bidder(bidder)
                   .bidSum(bidSum)
                   .isAuto(true)
                   .build();
+    }
+
+    public static void validateBid(Auction auction, User bidder, int bidSum) {
+        if (auction == null) throw new IllegalArgumentException("Auction is required");
+        if (bidder == null) throw new IllegalArgumentException("Bidder is required");
+        if (bidSum <= 0) throw new IllegalArgumentException("BidSum must be greater than 0");
     }
 }

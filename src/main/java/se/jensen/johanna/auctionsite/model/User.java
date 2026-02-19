@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
 import se.jensen.johanna.auctionsite.exception.InvalidPhoneNumberException;
 import se.jensen.johanna.auctionsite.model.enums.Role;
@@ -48,15 +47,19 @@ public class User extends BaseEntity {
         return User.builder().email(email).hashedPassword(hashedPassword).role(role).build();
     }
 
-    public void changeAddress(@NonNull Address address) {
+    public void changeAddress(Address address) {
+        if (address == null) throw new IllegalArgumentException("Address is required");
         this.address = address;
     }
 
-    public void changePassword(@NonNull String hashedPassword) {
+    public void changePassword(String hashedPassword) {
+        if (hashedPassword == null || hashedPassword.isBlank())
+            throw new IllegalArgumentException("Password is required");
         this.hashedPassword = hashedPassword;
     }
 
-    public void changeContactInfo(@NonNull String rawPhoneNr) {
+    public void changeContactInfo(String rawPhoneNr) {
+        if (rawPhoneNr == null || rawPhoneNr.isBlank()) throw new IllegalArgumentException("Phone number is required");
         String cleanPhoneNr = rawPhoneNr.trim().replaceAll("[^0-9+]", "");
         if (cleanPhoneNr.isEmpty()) {
             throw new InvalidPhoneNumberException("Please enter a valid phone number.");

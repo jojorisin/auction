@@ -1,10 +1,12 @@
 package se.jensen.johanna.auctionsite.dto.admin;
 
-import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
+import jakarta.validation.constraints.Positive;
 
 public record UpdateAuctionRequest(
-        AuctionStatus status,
+        @Positive
         Integer acceptedPrice,
+
+        @Positive
         Long itemId
 ) {
 }
