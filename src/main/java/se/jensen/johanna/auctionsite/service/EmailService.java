@@ -3,6 +3,7 @@ package se.jensen.johanna.auctionsite.service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -12,6 +13,7 @@ import se.jensen.johanna.auctionsite.dto.EmailTypeDTO;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
     private final JavaMailSender mailSender;
 
@@ -29,12 +31,15 @@ public class EmailService {
                     helper.setSubject("You were outbid.");
                     helper.setText("You were outbid on auction " + emailDTO.title() + " " + emailDTO.imageUrl());
                     break;
+                default:
+                    log.warn("Unknown email status: {}", emailDTO.status());
+                    break;
             }
 
             helper.setTo(emailDTO.email());
             mailSender.send(message);
         } catch (MessagingException | MailException e) {
-            e.printStackTrace();
+            log.warn("Failes to send email to {}: {}", emailDTO.email(), e.getMessage());
         }
     }
 }

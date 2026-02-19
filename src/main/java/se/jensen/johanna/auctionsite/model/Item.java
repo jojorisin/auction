@@ -75,23 +75,6 @@ public class Item extends BaseEntity {
                    .build();
     }
 
-    public void update(
-            Category category,
-            Category.SubCategory subCategory,
-            String title,
-            String description,
-            Integer valuation,
-            List<String> imageUrls
-    ) {
-
-        if (category != null) this.category = category;
-        if (subCategory != null) this.subCategory = subCategory;
-        if (title != null && !title.isBlank()) this.title = title;
-        if (description != null && !description.isEmpty()) this.description = description;
-        if (valuation != null && valuation > 0) this.valuation = valuation;
-        if (imageUrls != null) this.imageUrls = imageUrls;
-    }
-
     public void updateCategories(Category category, Category.SubCategory subCategory) {
         if (category == null || subCategory == null) {
             throw new IllegalArgumentException("Category and Subcategory is required.");

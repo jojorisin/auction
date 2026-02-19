@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import se.jensen.johanna.auctionsite.dto.AuctionDTO;
 import se.jensen.johanna.auctionsite.dto.AuctionsListDTO;
-import se.jensen.johanna.auctionsite.dto.ManualLaunchRequest;
 import se.jensen.johanna.auctionsite.dto.admin.*;
 import se.jensen.johanna.auctionsite.dto.my.MyWonAuctionDTO;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
@@ -65,7 +64,7 @@ public class AuctionService {
      */
     public AdminAuctionResponse createAuctionForItem(CreateAuctionRequest dto) {
         Item item = itemRepository.findById(dto.itemId()).orElseThrow(NotFoundException::new);
-        if (auctionRepository.existsByItemIdAndStatusActiveOrInactive(item.getId())) {
+        if (auctionRepository.existsByItemId(item.getId())) {
             throw new IllegalStateException(String.format(
                     "Auction already exists for item with id %d",
                     item.getId()
@@ -77,17 +76,16 @@ public class AuctionService {
     }
 
     /**
-     * Launches a large batch of auctions
+     * Launches a batch of auctions
      *
-     * @param size      How many auctions to launch
-     * @param startTime the start time for auctions
-     * @param endTime   end time for auctions
-     * @return {@link LaunchBatchResponse} returns how many were successful and failed
+     * @param request {@link LaunchBatchRequest} request containing size, start and end time. Returns default value if null
+     * @return {@link LaunchBatchResponse} returns nr of successful and failed launches and a list with IDs of failed auctions
      */
-    public LaunchBatchResponse launchBatch(int size, Instant startTime, Instant endTime) {
-        startTime = startTime != null ? startTime : Instant.now();
-        Pageable limit = PageRequest.of(0, size);
-        endTime = endTime != null ? endTime : startTime.plus(7, ChronoUnit.DAYS);
+    public LaunchBatchResponse launchBatch(LaunchBatchRequest request) {
+        // use getters to return default values if null
+        Instant startTime = request.getStartTime();
+        Instant endTime = request.getEndTime();
+        Pageable limit = PageRequest.of(0, request.getSize());
 
         Page<Auction> auctionsToLaunch = auctionRepository.findByStatusOrderByCreatedAtAsc(
                 AuctionStatus.INACTIVE,
@@ -104,6 +102,11 @@ public class AuctionService {
                 failedLaunches++;
                 continue;
             }
+            if (auctionRepository.existsByItemIdAndStatusActiveOrPlanned(a.getItem().getId())) {
+                failed.add(new FailedToLaunch(a.getId(), "Auction already exists for item"));
+                failedLaunches++;
+                continue;
+            }
             Instant individualEndTime = endTime.plus(minutesToAdd, ChronoUnit.MINUTES);
             a.launchAuction(startTime, individualEndTime);
             minutesToAdd++;
@@ -113,15 +116,23 @@ public class AuctionService {
         return new LaunchBatchResponse(successfulLaunches, failedLaunches, failed);
     }
 
+    /**
+     * Launches one single auction.
+     *
+     * @param auctionId ID of auction to put public
+     * @param request   containing start and endtime.
+     * @return {@link ManualLaunchResponse} containing detailed info about the auction
+     */
     public ManualLaunchResponse manualLaunch(Long auctionId, ManualLaunchRequest request) {
-        Instant startTime = request.startTime() != null ? request.startTime() : Instant.now();
-        Instant endTime = request.endTime() != null ? request.endTime() : startTime.plus(7, ChronoUnit.DAYS);
+        // user getters to return default values if null
+        Instant startTime = request.getStartTime();
+        Instant endTime = request.getEndTime();
 
         Auction auction = getAuctionOrThrow(auctionId);
-        if (auctionRepository.existsByItemIdAndStatusActiveOrInactive(auction.getItem().getId())) {
+        if (auctionRepository.existsByItemIdAndStatusActiveOrPlanned(auction.getItem().getId())) {
             throw new IllegalStateException(String.format(
-                    "Auction already exists for item with id %d",
-                    auction.getItem().getId()
+                    "Auction with id %d is already launched or planned",
+                    auction.getId()
             ));
         }
         auction.launchAuction(startTime, endTime);
@@ -142,9 +153,6 @@ public class AuctionService {
 
         if (request.acceptedPrice() != null) {
             auction.updateAcceptedPrice(request.acceptedPrice());
-        }
-        if (request.status() != null) {
-            auction.updateStatus(request.status());
         }
         if (request.itemId() != null) {
             Item item = itemRepository.findById(request.itemId()).orElseThrow(NotFoundException::new);

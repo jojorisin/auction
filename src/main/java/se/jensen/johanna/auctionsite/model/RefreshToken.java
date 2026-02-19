@@ -28,6 +28,8 @@ public class RefreshToken extends BaseEntity {
     Instant expiryDate;
 
     public static RefreshToken create(User user, long durationMs) {
+        if (user == null) throw new IllegalArgumentException("User is required to create refreshToken");
+        if (durationMs <= 0) throw new IllegalArgumentException("Duration must be greater than 0");
         return RefreshToken.builder()
                            .user(user)
                            .expiryDate(Instant.now().plusMillis(durationMs))

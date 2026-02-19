@@ -1,6 +1,5 @@
 package se.jensen.johanna.auctionsite.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,7 +13,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-@Transactional
 @Service
 @RequiredArgsConstructor
 public class TokenService {

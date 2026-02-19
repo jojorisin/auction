@@ -235,7 +235,12 @@ public class Auction extends BaseEntity {
      * @return Auction
      */
     public static Auction prepareAuction(Item item, Integer acceptedPrice) {
-        if (item == null || !item.isReadyForAuction()) throw new IllegalArgumentException("Item cannot be null");
+        if (item == null) {
+            throw new IllegalArgumentException("Item is required to prepare auction.");
+        }
+        if (!item.isReadyForAuction()) {
+            throw new IllegalStateException(String.format("Item with id %d is missing required fields", item.getId()));
+        }
         acceptedPrice = acceptedPrice == null ? 0 : acceptedPrice;
         return Auction.builder().item(item).acceptedPrice(acceptedPrice).status(AuctionStatus.INACTIVE).build();
     }

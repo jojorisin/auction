@@ -9,7 +9,7 @@ public record CreateAuctionRequest(
         @NotBlank(message = "Item id can't be empty")
         Long itemId,
 
-        @NotNull
+        @NotNull(message = "Accepted price is required.")
         @Positive
         Integer acceptedPrice
 ) {

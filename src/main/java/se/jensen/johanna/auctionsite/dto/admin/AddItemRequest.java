@@ -1,7 +1,9 @@
 package se.jensen.johanna.auctionsite.dto.admin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 
 import java.util.List;
@@ -14,19 +16,20 @@ public record AddItemRequest(
         @NotNull(message = "Please enter a category")
         Category category,
 
-        @Schema(implementation = Category.SubCategory.class, description = "Subcategory of item", example = "ART_FINE_ART")
+        @Schema(implementation = Category.SubCategory.class, description = "Subcategory of item", example = "PAINTINGS")
         @NotNull(message = "Please enter a subcategory")
         Category.SubCategory subCategory,
 
-        @NotNull(message = "Please enter title")
+        @NotBlank(message = "Please enter title")
         String title,
 
-        @NotNull(message = "Please enter a description of object")
+        @NotBlank(message = "Please enter a description of the item")
         String description,
 
         @NotNull(message = "Please enter a valuation")
+        @Positive
         Integer valuation,
 
-        List<String> imageUrls
+        List<@NotBlank String> imageUrls
 ) {
 }

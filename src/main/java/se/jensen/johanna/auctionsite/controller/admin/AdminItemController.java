@@ -1,5 +1,6 @@
 package se.jensen.johanna.auctionsite.controller.admin;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +35,15 @@ public class AdminItemController {
     }
 
     @PostMapping
-    public ResponseEntity<AdminItemDTO> addItem(@RequestBody AddItemRequest request) {
+    public ResponseEntity<AdminItemDTO> addItem(@RequestBody @Valid AddItemRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addItem(request));
     }
 
     @PutMapping("/{itemId}")
-    public ResponseEntity<AdminItemDTO> editItem(@PathVariable Long itemId, @RequestBody UpdateItemRequest request) {
+    public ResponseEntity<AdminItemDTO> editItem(
+            @PathVariable Long itemId,
+            @RequestBody @Valid UpdateItemRequest request
+    ) {
         return ResponseEntity.ok(itemService.updateItem(request, itemId));
     }
 
