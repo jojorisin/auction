@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import se.jensen.johanna.auctionsite.dto.ResponseMessage;
 import se.jensen.johanna.auctionsite.dto.auth.RegisterUserRequest;
 import se.jensen.johanna.auctionsite.dto.my.*;
+import se.jensen.johanna.auctionsite.exception.NotFoundException;
 import se.jensen.johanna.auctionsite.exception.PasswordMisMatchException;
 import se.jensen.johanna.auctionsite.exception.UserAlreadyExistsException;
 import se.jensen.johanna.auctionsite.exception.UserNotFoundException;
@@ -43,14 +44,12 @@ public class UserService {
     public ResponseMessage updatePassword(UpdatePasswordDTO passwordDTO, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
-        if (!passwordEncoder.matches(passwordDTO.oldPassword(), user.getHashedPassword())
-                || !passwordDTO.newPassword()
-                               .equals(passwordDTO.confirmNewPassword())) {
+        if (!passwordEncoder.matches(passwordDTO.oldPassword(), user.getHashedPassword()) || !passwordDTO.newPassword()
+                                                                                                         .equals(passwordDTO.confirmNewPassword())) {
             throw new PasswordMisMatchException("Passwords do not match. Please try again.");
         }
         String newHashedPw = passwordEncoder.encode(passwordDTO.newPassword());
         user.changePassword(newHashedPw);
-
         return new ResponseMessage("Password has been updated successfully.");
     }
 
@@ -60,24 +59,33 @@ public class UserService {
         return userMapper.toAppUserDTO(user);
     }
 
-    public AddressResponse updateAddress(Long userId, AddressRequest dto) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-
-        Address newAddress = Address.builder()
-                                    .firstName(dto.firstName())
-                                    .lastName(dto.lastName())
-                                    .co(dto.co())
-                                    .streetName(dto.streetName())
-                                    .streetName2(dto.streetName2())
-                                    .postalCode(dto.postalCode())
-                                    .city(dto.city())
-                                    .country(dto.country()).build();
-
-        user.changeAddress(newAddress);
+    /**
+     * Creates and adds a new address to the specific user.
+     *
+     * @param userId  ID of the user that is updating address
+     * @param request {@link AddressRequest} Contains address fields with validation
+     * @return {@link AddressResponse} The newly updated address
+     */
+    public AddressResponse updateAddress(Long userId, AddressRequest request) {
+        User user = getUserOrThrow(userId);
+        Address address = Address.create(
+                request.firstName(),
+                request.lastName(),
+                request.co(),
+                request.streetName(),
+                request.streetName2(),
+                request.postalCode(),
+                request.city(),
+                request.country()
+        );
+        user.changeAddress(address);
+        userRepository.save(user);
         return userMapper.toAddressResponse(user);
     }
 
     private User getUserOrThrow(Long userId) {
-        return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        return userRepository.findById(userId).orElseThrow(() ->
+                new NotFoundException(String.format("User with id %d not found.", userId))
+        );
     }
 }

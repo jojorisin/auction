@@ -40,7 +40,7 @@ public class BidController {
             @PathVariable Long auctionId,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        Optional<Long> userId = Optional.ofNullable(jwt).map(jwtUtils::extractUserId);
+        Long userId = Optional.ofNullable(jwt).map(jwtUtils::extractUserId).orElse(null);
         return ResponseEntity.ok(bidService.getBidsForActiveAuction(auctionId, userId));
     }
 }

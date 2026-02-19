@@ -27,4 +27,21 @@ public class Address {
     private String city;
 
     private String country;
+
+    public static Address create(
+            String firstName,
+            String lastName,
+            String co,
+            String streetName,
+            String streetName2,
+            String postalCode,
+            String city,
+            String country
+    ) {
+        if (firstName == null || lastName == null || streetName == null || postalCode == null || city == null || country == null) {
+            throw new IllegalArgumentException("Address is missing required fields.");
+        }
+        return Address.builder().firstName(firstName).lastName(lastName).co(co).streetName(streetName)
+                      .streetName2(streetName2).postalCode(postalCode).city(city).country(country).build();
+    }
 }

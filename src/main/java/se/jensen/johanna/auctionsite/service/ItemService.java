@@ -2,6 +2,7 @@ package se.jensen.johanna.auctionsite.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import se.jensen.johanna.auctionsite.dto.admin.AddItemRequest;
 import se.jensen.johanna.auctionsite.dto.admin.AdminItemDTO;
@@ -11,12 +12,15 @@ import se.jensen.johanna.auctionsite.exception.UserNotFoundException;
 import se.jensen.johanna.auctionsite.mapper.ItemMapper;
 import se.jensen.johanna.auctionsite.model.Item;
 import se.jensen.johanna.auctionsite.model.User;
+import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.model.enums.Category;
+import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.ItemRepository;
 import se.jensen.johanna.auctionsite.repository.UserRepository;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -24,6 +28,7 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ItemMapper itemMapper;
+    private final AuctionRepository auctionRepository;
 
     public List<AdminItemDTO> findAllItems(Category category, Category.SubCategory subCategory) {
         List<Item> items = itemRepository.findAllItems(category, subCategory);
@@ -52,7 +57,7 @@ public class ItemService {
 
     public AdminItemDTO updateItem(UpdateItemRequest dto, Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
-        
+
         if (dto.category() != null && dto.subCategory() != null) {
             item.updateCategories(dto.category(), dto.subCategory());
         }
@@ -78,6 +83,10 @@ public class ItemService {
 
     public void deleteItem(Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
+        if (auctionRepository.existsByItemIdAndStatus(item.getId(), AuctionStatus.ACTIVE)) {
+            log.warn("Deleting Item with id {} is currently at auction. Deleting item is not allowed.", itemId);
+            throw new IllegalStateException(String.format("Item with id %d is currently at auction.", itemId));
+        }
         itemRepository.delete(item);
     }
 }

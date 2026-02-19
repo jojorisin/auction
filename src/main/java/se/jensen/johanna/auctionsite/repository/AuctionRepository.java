@@ -43,6 +43,9 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Query("SELECT COUNT(a)>0 FROM Auction a WHERE a.item.id=:itemId")
     boolean existsByItemId(Long itemId);
 
+    @Query("SELECT COUNT (a)>0 FROM Auction a WHERE a.item.id=:itemId AND a.status=:status")
+    boolean existsByItemIdAndStatus(Long itemId, AuctionStatus status);
+
     @EntityGraph(attributePaths = {"bids.bidder"})
     Optional<Auction> findWithBidsAndBiddersById(Long auctionId);
 }

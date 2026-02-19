@@ -29,11 +29,7 @@ public class MyController {
 
     @GetMapping
     public ResponseEntity<AppUserDTO> getMe(@AuthenticationPrincipal Jwt jwt) {
-
-        return ResponseEntity.ok().body(
-                userService.getAuthenticatedUser(jwtUtils.extractUserId(jwt))
-        );
-
+        return ResponseEntity.ok().body(userService.getAuthenticatedUser(jwtUtils.extractUserId(jwt)));
     }
 
     @PutMapping("/address")
@@ -41,12 +37,7 @@ public class MyController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid AddressRequest request
     ) {
-
-
-        return ResponseEntity.ok().body(userService.updateAddress(
-                jwtUtils.extractUserId(jwt), request
-        ));
-
+        return ResponseEntity.ok().body(userService.updateAddress(jwtUtils.extractUserId(jwt), request));
     }
 
     @PutMapping("/contact")
@@ -55,7 +46,6 @@ public class MyController {
             @RequestBody @Valid ContactInfoRequest request
     ) {
         return ResponseEntity.ok(userService.updateContactInfo(jwtUtils.extractUserId(jwt), request));
-
     }
 
     @PutMapping("/password")
@@ -72,7 +62,6 @@ public class MyController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         List<MyActiveBids> myActiveBids = bidService.getMyActiveBids(jwtUtils.extractUserId(jwt));
-
         return ResponseEntity.ok(myActiveBids);
     }
 
@@ -81,10 +70,6 @@ public class MyController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         List<MyWonAuctionDTO> wonAuctions = auctionService.getMyWonAuctions(jwtUtils.extractUserId(jwt));
-
         return ResponseEntity.ok(wonAuctions);
-
     }
-
-
 }

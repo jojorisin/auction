@@ -38,11 +38,12 @@ public class BidService {
 
     /**
      * Retrieves a list of all bids for an auction
+     * Optional user id if user is logged in it displays if bid belongs to them
      *
      * @param auctionId ID of auction to fetch bids for
      * @return {@link BidHistoryDTO} a list of all bids with an Integer as an alias for the bidder
      */
-    public List<BidHistoryDTO> getBidsForActiveAuction(Long auctionId, Optional<Long> currentUserId) {
+    public List<BidHistoryDTO> getBidsForActiveAuction(Long auctionId, Long currentUserId) {
         Auction auction = auctionRepository.findWithBidsAndBiddersById(auctionId).orElseThrow(NotFoundException::new);
 
         AtomicInteger counter = new AtomicInteger(1);
@@ -58,7 +59,7 @@ public class BidService {
         return auction.getBids().stream().map(bid -> {
             Long bidderId = bid.getBidder().getId();
             int alias = userIdAlias.get(bidderId);
-            boolean isMe = currentUserId.map(id -> id.equals(bidderId)).orElse(false);
+            boolean isMe = Optional.ofNullable(currentUserId).map(id -> id.equals(bidderId)).orElse(false);
 
             return new BidHistoryDTO(bid.getBidSum(), bid.getCreatedAt(), bid.getIsAuto(), alias, isMe);
         }).toList();
