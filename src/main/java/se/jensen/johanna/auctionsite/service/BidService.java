@@ -12,7 +12,6 @@ import se.jensen.johanna.auctionsite.dto.BidResponse;
 import se.jensen.johanna.auctionsite.dto.BiddingResult;
 import se.jensen.johanna.auctionsite.dto.enums.BidStatus;
 import se.jensen.johanna.auctionsite.dto.my.MyActiveBids;
-import se.jensen.johanna.auctionsite.dto.my.MyWonAuctionDTO;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
 import se.jensen.johanna.auctionsite.exception.UserNotFoundException;
 import se.jensen.johanna.auctionsite.mapper.BidMapper;
@@ -22,10 +21,12 @@ import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.BidRepository;
+import se.jensen.johanna.auctionsite.repository.MaxBidRepository;
 import se.jensen.johanna.auctionsite.repository.UserRepository;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,7 @@ public class BidService {
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
     private final BidMapper bidMapper;
+    private final MaxBidRepository maxBidRepository;
 
     /**
      * Retrieves a list of all bids for an auction
@@ -69,17 +71,28 @@ public class BidService {
      * Retrieves a list of all active bids for authenticated user
      *
      * @param userId ID of user to fetch bids for
-     * @return a list of {@link MyWonAuctionDTO} contains information about bidding and auction
+     * @return a list of {@link MyActiveBids} contains information about the bids and auction
      */
     public List<MyActiveBids> getMyActiveBids(Long userId) {
-        return bidRepository.findLatestActiveUserBids(userId, AuctionStatus.ACTIVE).stream()
-                            .map(b -> {
-                                boolean isLeading = b.getAuction().getWinningBid()
-                                                     .map(leading -> leading.getBidder().getId().equals(userId))
-                                                     .orElse(false);
-                                BidStatus status = isLeading ? BidStatus.LEADING : BidStatus.OUTBID;
-                                return bidMapper.toMyRecord(b, status);
-                            }).toList();
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException(String.format("User with id %d not found.", userId));
+        }
+        List<Bid> userBids = bidRepository.findLatestActiveUserBids(userId, AuctionStatus.ACTIVE);
+
+        List<Long> auctionIds = userBids.stream().map(Bid::getAuction).map(Auction::getId).toList();
+        List<Object[]> maxSumResult = maxBidRepository.findMaxBidSumByAuctionAndUser_IdIn(userId, auctionIds);
+        Map<Long, Integer> maxBidSums = maxSumResult.stream().collect(Collectors.toMap(
+                row -> (Long) row[0],
+                row -> (Integer) row[1]
+        ));
+
+        return userBids.stream().map(b -> {
+            boolean isLeading = b.getAuction().getWinningBid()
+                                 .map(leading -> leading.getBidder().getId().equals(userId)).orElse(false);
+            BidStatus status = isLeading ? BidStatus.LEADING : BidStatus.OUTBID;
+            Integer maxSum = maxBidSums.get(b.getAuction().getId());
+            return bidMapper.toMyActiveBids(b, status, maxSum);
+        }).toList();
     }
 
     /**

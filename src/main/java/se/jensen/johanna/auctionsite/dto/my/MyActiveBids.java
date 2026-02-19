@@ -12,7 +12,7 @@ import java.util.List;
  * @param endTime
  * @param status
  * @param highestBid
- * @param maxBid
+ * @param maxSum
  */
 public record MyActiveBids(
         Long auctionId,
@@ -21,8 +21,7 @@ public record MyActiveBids(
         Instant endTime,
         BidStatus status,
         Integer highestBid,
-        Integer maxBid
-
+        Integer maxSum
 
 ) {
 }

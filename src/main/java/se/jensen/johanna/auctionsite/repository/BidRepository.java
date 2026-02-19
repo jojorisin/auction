@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface BidRepository extends JpaRepository<Bid, Long> {
 
-    @EntityGraph(attributePaths = {"auction.winningBid.bidder"})
+    @EntityGraph(attributePaths = {"auction.winningBid.bidder", "auction.item"})
     @Query("SELECT b FROM Bid b WHERE b.bidder.id = :userId " +
             "AND (:status IS NULL OR b.auction.status = :status) " +
             "AND b.createdAt = (SELECT MAX(b2.createdAt) FROM Bid b2 " +

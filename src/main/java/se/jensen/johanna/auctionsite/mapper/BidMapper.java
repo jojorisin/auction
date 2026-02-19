@@ -15,5 +15,6 @@ public interface BidMapper {
     @Mapping(target = "status", source = "status")
     @Mapping(target = "highestBid", expression = "java(bid.getAuction().leadingAmount())")
     @Mapping(target = "endTime", source = "bid.auction.endTime")
-    MyActiveBids toMyRecord(Bid bid, BidStatus status);
+    @Mapping(target = "maxSum", source = "maxSum")
+    MyActiveBids toMyActiveBids(Bid bid, BidStatus status, Integer maxSum);
 }
