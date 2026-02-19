@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import se.jensen.johanna.auctionsite.dto.BiddingResult;
+import se.jensen.johanna.auctionsite.exception.AuctionClosedException;
 import se.jensen.johanna.auctionsite.exception.InvalidBidException;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.service.enums.BidTier;
@@ -152,5 +153,26 @@ class AuctionTest {
 
         assertThat(auction2.getEndTime()).isCloseTo(expectedTime, within(1, ChronoUnit.SECONDS));
         assertThat(auction2.getEndTime()).isAfter(originalEndTime);
+    }
+
+    @Test
+    @DisplayName("Should throw AuctionClosedException when endtime has passed but Auction still active")
+    void shouldThrowAuctionClosedWhenBidComesInAfterEndTime() {
+        Instant now = Instant.now();
+        Instant startTime = now.minus(30, ChronoUnit.SECONDS);
+        Instant endTime = now.minus(5, ChronoUnit.SECONDS);
+
+        Auction auction2 = TestDataFactory.createAnyAuction(
+                AUCTION_ID,
+                item,
+                800,
+                startTime,
+                endTime,
+                AuctionStatus.ACTIVE
+        );
+        assertThatThrownBy(() -> auction2.placeBid(
+                currentBidder,
+                normalBidAmount
+        )).isInstanceOf(AuctionClosedException.class);
     }
 }
