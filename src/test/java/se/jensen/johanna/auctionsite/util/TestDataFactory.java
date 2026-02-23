@@ -16,6 +16,7 @@ public class TestDataFactory {
                    .id(id)
                    .email("test@test.com")
                    .role(Role.MEMBER)
+                   .hashedPassword("<PASSWORD>")
                    .build();
     }
 
@@ -29,7 +30,17 @@ public class TestDataFactory {
                    .subCategory(Category.SubCategory.PAINTINGS)
                    .valuation(valuation)
                    .build();
+    }
 
+    public static Item createItem(User seller) {
+        return Item.builder()
+                   .seller(seller)
+                   .title("Picasso")
+                   .description("painting")
+                   .category(Category.ART)
+                   .subCategory(Category.SubCategory.PAINTINGS)
+                   .valuation(10000)
+                   .build();
     }
 
     public static Auction createActiveAuction(Long id, Item item) {
@@ -41,7 +52,6 @@ public class TestDataFactory {
                       .endTime(Instant.now().plus(5, ChronoUnit.MINUTES))
                       .status(AuctionStatus.ACTIVE)
                       .build();
-
     }
 
     public static Auction createAnyAuction(

@@ -15,7 +15,6 @@ import se.jensen.johanna.auctionsite.service.BidService;
 import se.jensen.johanna.auctionsite.util.JwtUtils;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,12 +34,8 @@ public class BidController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
-    @GetMapping("/auctions/{auctionId}/bid")
-    public ResponseEntity<List<BidHistoryDTO>> getBidHistory(
-            @PathVariable Long auctionId,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        Long userId = Optional.ofNullable(jwt).map(jwtUtils::extractUserId).orElse(null);
-        return ResponseEntity.ok(bidService.getBidsForActiveAuction(auctionId, userId));
+    @GetMapping("/auctions/{auctionId}/bids")
+    public ResponseEntity<List<BidHistoryDTO>> getBidHistory(@PathVariable Long auctionId) {
+        return ResponseEntity.ok(bidService.getBidsForActiveAuction(auctionId));
     }
 }

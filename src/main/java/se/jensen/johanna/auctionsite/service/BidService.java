@@ -2,6 +2,7 @@ package se.jensen.johanna.auctionsite.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -12,6 +13,7 @@ import se.jensen.johanna.auctionsite.dto.BidResponse;
 import se.jensen.johanna.auctionsite.dto.BiddingResult;
 import se.jensen.johanna.auctionsite.dto.enums.BidStatus;
 import se.jensen.johanna.auctionsite.dto.my.MyActiveBids;
+import se.jensen.johanna.auctionsite.event.BidPlacedEvent;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
 import se.jensen.johanna.auctionsite.exception.UserNotFoundException;
 import se.jensen.johanna.auctionsite.mapper.BidMapper;
@@ -24,7 +26,10 @@ import se.jensen.johanna.auctionsite.repository.BidRepository;
 import se.jensen.johanna.auctionsite.repository.MaxBidRepository;
 import se.jensen.johanna.auctionsite.repository.UserRepository;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -37,15 +42,15 @@ public class BidService {
     private final UserRepository userRepository;
     private final BidMapper bidMapper;
     private final MaxBidRepository maxBidRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Retrieves a list of all bids for an auction
-     * Optional user id if user is logged in it displays if bid belongs to them
      *
      * @param auctionId ID of auction to fetch bids for
      * @return {@link BidHistoryDTO} a list of all bids with an Integer as an alias for the bidder
      */
-    public List<BidHistoryDTO> getBidsForActiveAuction(Long auctionId, Long currentUserId) {
+    public List<BidHistoryDTO> getBidsForActiveAuction(Long auctionId) {
         Auction auction = auctionRepository.findWithBidsAndBiddersById(auctionId).orElseThrow(NotFoundException::new);
 
         AtomicInteger counter = new AtomicInteger(1);
@@ -60,10 +65,8 @@ public class BidService {
 
         return auction.getBids().stream().map(bid -> {
             Long bidderId = bid.getBidder().getId();
-            int alias = userIdAlias.get(bidderId);
-            boolean isMe = Optional.ofNullable(currentUserId).map(id -> id.equals(bidderId)).orElse(false);
-
-            return new BidHistoryDTO(bid.getBidSum(), bid.getCreatedAt(), bid.getIsAuto(), alias, isMe);
+            Integer alias = userIdAlias.get(bidderId);
+            return new BidHistoryDTO(bid.getBidSum(), bid.getCreatedAt(), bid.getIsAuto(), alias, bidderId);
         }).toList();
     }
 
@@ -125,6 +128,7 @@ public class BidService {
         }
 
         auctionRepository.save(auction);
+        eventPublisher.publishEvent(new BidPlacedEvent(auctionId));
         return createBidResponse(result, auction);
     }
 
