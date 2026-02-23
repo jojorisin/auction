@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -46,6 +48,21 @@ import java.util.List;
 public class SecurityConfig {
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigin;
+
+    /**
+     * Dedicated security filter chain for WebSockets.
+     * Note: Permitting all requests to /ws/** for ease of testing and
+     * handshake handling in the current development phase.
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SecurityFilterChain webSocketFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/ws/**")
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .csrf(csrf -> csrf.disable());
+        return http.build();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

@@ -7,6 +7,6 @@ public record BidHistoryDTO(
         Instant createdAt,
         Boolean isAuto,
         Integer bidderAlias,
-        boolean isMe
+        Long userId
 ) {
 }
