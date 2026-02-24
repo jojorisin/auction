@@ -8,7 +8,6 @@ import se.jensen.johanna.auctionsite.dto.admin.AddItemRequest;
 import se.jensen.johanna.auctionsite.dto.admin.AdminItemDTO;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateItemRequest;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
-import se.jensen.johanna.auctionsite.exception.UserNotFoundException;
 import se.jensen.johanna.auctionsite.mapper.ItemMapper;
 import se.jensen.johanna.auctionsite.model.Item;
 import se.jensen.johanna.auctionsite.model.User;
@@ -36,12 +35,18 @@ public class ItemService {
     }
 
     public AdminItemDTO findItem(Long itemId) {
-        Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
+                new NotFoundException(String.format("Item with id %d not found.", itemId))
+        );
         return itemMapper.toRecord(item);
     }
 
     public AdminItemDTO addItem(AddItemRequest request) {
-        User seller = userRepository.findById(request.sellerId()).orElseThrow(UserNotFoundException::new);
+        User seller = userRepository.findById(request.sellerId()).orElseThrow(() ->
+                new NotFoundException(String.format(
+                        "Seller with id %d not found when creating item.",
+                        request.sellerId()
+                )));
         Item item = Item.create(
                 seller,
                 request.category(),
@@ -52,11 +57,13 @@ public class ItemService {
                 request.imageUrls()
         );
         itemRepository.save(item);
+        log.info("Item {} created for seller {}", item.getId(), item.getSeller().getId());
         return itemMapper.toRecord(item);
     }
 
     public AdminItemDTO updateItem(UpdateItemRequest dto, Long itemId) {
-        Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
+                new NotFoundException(String.format("Item with id %d not found.", itemId)));
 
         if (dto.category() != null && dto.subCategory() != null) {
             item.updateCategories(dto.category(), dto.subCategory());
@@ -78,15 +85,20 @@ public class ItemService {
         }
 
         itemRepository.save(item);
+        log.info("Item {} updated.", item.getId());
         return itemMapper.toRecord(item);
     }
 
     public void deleteItem(Long itemId) {
-        Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
+                new NotFoundException(String.format("Item with id %d not found", itemId)));
         if (auctionRepository.existsByItemIdAndStatus(item.getId(), AuctionStatus.ACTIVE)) {
-            log.warn("Deleting Item with id {} is currently at auction. Deleting item is not allowed.", itemId);
-            throw new IllegalStateException(String.format("Item with id %d is currently at auction.", itemId));
+            throw new IllegalStateException(String.format(
+                    "Item with id %d is currently at auction and can not be deleted.",
+                    itemId
+            ));
         }
         itemRepository.delete(item);
+        log.info("Item {} deleted.", itemId);
     }
 }

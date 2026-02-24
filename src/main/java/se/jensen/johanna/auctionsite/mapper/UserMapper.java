@@ -3,7 +3,7 @@ package se.jensen.johanna.auctionsite.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import se.jensen.johanna.auctionsite.dto.my.AddressResponse;
-import se.jensen.johanna.auctionsite.dto.my.AppUserDTO;
+import se.jensen.johanna.auctionsite.dto.my.UserDTO;
 import se.jensen.johanna.auctionsite.model.User;
 
 @Mapper(componentModel = "spring")
@@ -20,8 +20,6 @@ public interface UserMapper {
     AddressResponse toAddressResponse(User user);
 
     @Mapping(target = "address", source = "user")
-    AppUserDTO toAppUserDTO(User user);
-
-
+    UserDTO toAppUserDTO(User user);
 }
 

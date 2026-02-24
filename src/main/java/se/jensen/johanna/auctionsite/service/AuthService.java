@@ -1,6 +1,7 @@
 package se.jensen.johanna.auctionsite.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,6 +14,7 @@ import se.jensen.johanna.auctionsite.exception.RefreshTokenException;
 import se.jensen.johanna.auctionsite.model.RefreshToken;
 import se.jensen.johanna.auctionsite.security.MyUserDetails;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -27,6 +29,7 @@ public class AuthService {
         MyUserDetails userDetails = (MyUserDetails) authenticatedAuth.getPrincipal();
         String accessToken = tokenService.generateToken(userDetails);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
+        log.info("User {} logged in.", userDetails.getUsername());
         return new LoginResult(
                 new LoginResponse(
                         accessToken,
@@ -39,8 +42,7 @@ public class AuthService {
     }
 
     public RefreshResult refresh(String oldTokenStr) {
-        RefreshToken oldToken = refreshTokenService.findByToken(oldTokenStr)
-                                                   .map(refreshTokenService::verifyExpiration)
+        RefreshToken oldToken = refreshTokenService.findByToken(oldTokenStr).map(refreshTokenService::verifyExpiration)
                                                    .orElseThrow(() -> new RefreshTokenException(
                                                            "RefreshToken is not in database"));
 
@@ -48,6 +50,7 @@ public class AuthService {
                                                                                                   .getEmail());
         String newAccessToken = tokenService.generateToken(userDetails);
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
+        log.info("User {} refreshed token.", userDetails.getUsername());
         return new RefreshResult(newAccessToken, newRefreshToken.getToken());
     }
 }

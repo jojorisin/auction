@@ -11,9 +11,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import se.jensen.johanna.auctionsite.dto.EmailTypeDTO;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class EmailService {
     private final JavaMailSender mailSender;
 
@@ -39,7 +39,7 @@ public class EmailService {
             helper.setTo(emailDTO.email());
             mailSender.send(message);
         } catch (MessagingException | MailException e) {
-            log.warn("Failes to send email to {}: {}", emailDTO.email(), e.getMessage());
+            log.error("Failed to send email to {}: {}", emailDTO.email(), e.getMessage());
         }
     }
 }

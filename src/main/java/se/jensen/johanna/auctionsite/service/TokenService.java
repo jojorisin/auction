@@ -1,6 +1,7 @@
 package se.jensen.johanna.auctionsite.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenService {
@@ -35,7 +37,9 @@ public class TokenService {
                                              .claim("scope", scope)
                                              .build();
 
-        return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+        String token = jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+        log.info("Generated JWT token for user {} with scope {}.", userDetails.getUsername(), scope);
+        return token;
     }
 }
 
