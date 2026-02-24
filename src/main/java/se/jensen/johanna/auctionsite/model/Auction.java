@@ -258,14 +258,6 @@ public class Auction extends BaseEntity {
         this.acceptedPrice = acceptedPrice;
     }
 
-    public void updateStatus(AuctionStatus status) {
-        if (status == null) {
-            throw new IllegalArgumentException("Status cannot be null");
-        }
-
-        this.status = status;
-    }
-
     /**
      * Launches Auction for public.
      *
@@ -334,10 +326,6 @@ public class Auction extends BaseEntity {
     }
 
     public void closeExpiredAuction() {
-        this.status = AuctionStatus.EXPIRED;
-    }
-
-    public void closeAuctionAcceptedNotMet() {
         this.status = AuctionStatus.EXPIRED;
     }
 

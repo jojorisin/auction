@@ -16,7 +16,6 @@ import se.jensen.johanna.auctionsite.dto.enums.BidStatus;
 import se.jensen.johanna.auctionsite.dto.my.MyActiveBids;
 import se.jensen.johanna.auctionsite.event.BidPlacedEvent;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
-import se.jensen.johanna.auctionsite.exception.UserNotFoundException;
 import se.jensen.johanna.auctionsite.mapper.BidMapper;
 import se.jensen.johanna.auctionsite.model.Auction;
 import se.jensen.johanna.auctionsite.model.Bid;
@@ -114,8 +113,10 @@ public class BidService {
     )
     @Transactional
     public BidResponse placeBid(BidRequest bidRequest, Long userId, Long auctionId) {
-        Auction auction = auctionRepository.findById(auctionId).orElseThrow(NotFoundException::new);
-        User bidder = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Auction auction = auctionRepository.findById(auctionId).orElseThrow(() ->
+                new NotFoundException(String.format("Auction with id %d not found", auctionId)));
+        User bidder = userRepository.findById(userId).orElseThrow(() ->
+                new NotFoundException(String.format("User with id %d not found", userId)));
         int amount = bidRequest.amount();
         log.info("Attempting to place bid - user {}, auction {}, amount {}", userId, auctionId, amount);
         BiddingResult result = auction.placeBid(bidder, amount);

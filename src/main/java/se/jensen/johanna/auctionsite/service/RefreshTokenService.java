@@ -2,6 +2,7 @@ package se.jensen.johanna.auctionsite.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import se.jensen.johanna.auctionsite.exception.RefreshTokenException;
@@ -13,6 +14,7 @@ import se.jensen.johanna.auctionsite.repository.UserRepository;
 
 import java.util.Optional;
 
+@Slf4j
 @Transactional
 @Service
 @RequiredArgsConstructor
@@ -33,11 +35,15 @@ public class RefreshTokenService {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         refreshTokenRepository.deleteByUser(user);
         refreshTokenRepository.flush();
-        return refreshTokenRepository.save(RefreshToken.create(user, refreshTokenDurationMs));
+        RefreshToken newRefreshToken = RefreshToken.create(user, refreshTokenDurationMs);
+        refreshTokenRepository.save(newRefreshToken);
+        log.info("Created new refresh token for user {}.", userId);
+        return newRefreshToken;
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.isExpired()) {
+            log.info("Refresh token has expired for user {}.", token.getUser().getId());
             refreshTokenRepository.delete(token);
             throw new RefreshTokenException("Refresh token has expired. Please Log in again.");
         }

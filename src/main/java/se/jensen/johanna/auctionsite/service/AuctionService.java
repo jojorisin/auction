@@ -77,7 +77,7 @@ public class AuctionService {
         }
         Auction auction = Auction.prepareAuction(item, dto.acceptedPrice());
         auctionRepository.save(auction);
-        log.info("Auction created for item with id {}", item.getId());
+        log.info("Auction created for item {}", item.getId());
         return auctionMapper.toAdminRecord(auction);
     }
 
@@ -106,14 +106,14 @@ public class AuctionService {
             if (!a.isReadyToLaunch()) {
                 failed.add(new FailedToLaunch(a.getId(), "Missing required fields"));
                 failedLaunches++;
-                log.warn("Failed to launch: Auction with id {} is missing required fields", a.getId());
+                log.warn("Failed to launch: Auction {} is missing required fields", a.getId());
                 continue;
             }
             if (auctionRepository.existsByItemIdAndStatusActiveOrPlanned(a.getItem().getId())) {
                 failed.add(new FailedToLaunch(a.getId(), "Auction already exists for item"));
                 failedLaunches++;
                 log.warn(
-                        "Failed to launch: Item with id {} already has an active or planed auction", a.getItem().getId()
+                        "Failed to launch: Item {} already has an active or planed auction", a.getItem().getId()
                 );
                 continue;
             }
@@ -149,7 +149,13 @@ public class AuctionService {
         auction.launchAuction(startTime, endTime);
         auctionRepository.save(auction);
         String typeOfLaunch = startTime.isBefore(Instant.now()) ? "Planned" : "Launched";
-        log.info(typeOfLaunch + " auction with id {} manually.", auction.getId());
+        log.info(
+                "Auction {} manually {}. start time: {}, end time: {}",
+                auction.getId(),
+                typeOfLaunch,
+                startTime,
+                endTime
+        );
         return auctionMapper.toManualLaunchResponse(auction);
     }
 
@@ -174,7 +180,7 @@ public class AuctionService {
             auction.updateItem(item);
         }
         auctionRepository.save(auction);
-        log.info("Auction with id {} updated.", auction.getId());
+        log.info("Auction {} updated.", auction.getId());
         return auctionMapper.toAdminRecord(auction);
     }
 
@@ -187,7 +193,7 @@ public class AuctionService {
     public void deleteAuction(Long auctionId) {
         Auction auction = getAuctionOrThrow(auctionId);
         auctionRepository.delete(auction);
-        log.info("Auction with id {} deleted.", auctionId);
+        log.info("Auction {} deleted.", auctionId);
     }
 
     //*****************PUBLIC**********

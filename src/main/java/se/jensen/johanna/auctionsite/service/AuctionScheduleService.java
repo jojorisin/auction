@@ -2,6 +2,7 @@ package se.jensen.johanna.auctionsite.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import se.jensen.johanna.auctionsite.dto.EmailTypeDTO;
@@ -12,6 +13,7 @@ import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -37,16 +39,17 @@ public class AuctionScheduleService {
                                     a.getItem().getTitle()
                             );
                             emailService.sendEmail(emailTypeDTO);
+                            log.info("Auction {} closed and SOLD", a.getId());
                         } else {
-                            a.closeAuctionAcceptedNotMet();
+                            a.closeExpiredAuction();
+                            log.info("Auction {} closed and EXPIRED - accepted not met", a.getId());
                         }
-                    }, a::closeExpiredAuction
+                    }, () -> {
+                        a.closeExpiredAuction();
+                        log.info("Auction {} closed and EXPIRED - no bids", a.getId());
+                    }
             );
         }
-    }
-
-    @Scheduled(cron = "0 * * * * *")
-    public void checkReminder() {
-
+        log.info("Auction check complete - processed {} auctions", soldAuctions.size());
     }
 }

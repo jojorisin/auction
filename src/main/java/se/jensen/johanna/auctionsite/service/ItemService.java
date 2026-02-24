@@ -57,7 +57,7 @@ public class ItemService {
                 request.imageUrls()
         );
         itemRepository.save(item);
-        log.info("Item with id {} created for seller with id {}", item.getId(), item.getSeller().getId());
+        log.info("Item {} created for seller {}", item.getId(), item.getSeller().getId());
         return itemMapper.toRecord(item);
     }
 
@@ -85,16 +85,20 @@ public class ItemService {
         }
 
         itemRepository.save(item);
-        log.info("Item with id {} updated.", item.getId());
+        log.info("Item {} updated.", item.getId());
         return itemMapper.toRecord(item);
     }
 
     public void deleteItem(Long itemId) {
-        Item item = itemRepository.findById(itemId).orElseThrow(NotFoundException::new);
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
+                new NotFoundException(String.format("Item with id %d not found", itemId)));
         if (auctionRepository.existsByItemIdAndStatus(item.getId(), AuctionStatus.ACTIVE)) {
-            log.warn("Deleting Item with id {} is currently at auction. Deleting item is not allowed.", itemId);
-            throw new IllegalStateException(String.format("Item with id %d is currently at auction.", itemId));
+            throw new IllegalStateException(String.format(
+                    "Item with id %d is currently at auction and can not be deleted.",
+                    itemId
+            ));
         }
         itemRepository.delete(item);
+        log.info("Item {} deleted.", itemId);
     }
 }

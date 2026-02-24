@@ -28,7 +28,7 @@ public class MyController {
     private final JwtUtils jwtUtils;
 
     @GetMapping
-    public ResponseEntity<AppUserDTO> getMe(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok().body(userService.getAuthenticatedUser(jwtUtils.extractUserId(jwt)));
     }
 
@@ -41,7 +41,7 @@ public class MyController {
     }
 
     @PutMapping("/contact")
-    public ResponseEntity<AppUserDTO> updateContactInfo(
+    public ResponseEntity<UserDTO> updateContactInfo(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid ContactInfoRequest request
     ) {
