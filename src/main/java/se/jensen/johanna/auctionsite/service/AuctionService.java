@@ -2,6 +2,7 @@ package se.jensen.johanna.auctionsite.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -63,7 +65,10 @@ public class AuctionService {
      * @throws NotFoundException if the item associated with the auction does not exist.
      */
     public AdminAuctionResponse createAuctionForItem(CreateAuctionRequest dto) {
-        Item item = itemRepository.findById(dto.itemId()).orElseThrow(NotFoundException::new);
+        Item item = itemRepository.findById(dto.itemId()).orElseThrow(() ->
+                new NotFoundException(String.format("Item with id %d not found", dto.itemId()))
+        );
+
         if (auctionRepository.existsByItemId(item.getId())) {
             throw new IllegalStateException(String.format(
                     "Auction already exists for item with id %d",
@@ -72,6 +77,7 @@ public class AuctionService {
         }
         Auction auction = Auction.prepareAuction(item, dto.acceptedPrice());
         auctionRepository.save(auction);
+        log.info("Auction created for item with id {}", item.getId());
         return auctionMapper.toAdminRecord(auction);
     }
 
@@ -100,11 +106,15 @@ public class AuctionService {
             if (!a.isReadyToLaunch()) {
                 failed.add(new FailedToLaunch(a.getId(), "Missing required fields"));
                 failedLaunches++;
+                log.warn("Failed to launch: Auction with id {} is missing required fields", a.getId());
                 continue;
             }
             if (auctionRepository.existsByItemIdAndStatusActiveOrPlanned(a.getItem().getId())) {
                 failed.add(new FailedToLaunch(a.getId(), "Auction already exists for item"));
                 failedLaunches++;
+                log.warn(
+                        "Failed to launch: Item with id {} already has an active or planed auction", a.getItem().getId()
+                );
                 continue;
             }
             Instant individualEndTime = endTime.plus(minutesToAdd, ChronoUnit.MINUTES);
@@ -113,6 +123,7 @@ public class AuctionService {
             successfulLaunches++;
         }
         auctionRepository.saveAll(auctionsToLaunch);
+        log.info("Launched {} auctions, {} failed", successfulLaunches, failedLaunches);
         return new LaunchBatchResponse(successfulLaunches, failedLaunches, failed);
     }
 
@@ -137,6 +148,8 @@ public class AuctionService {
         }
         auction.launchAuction(startTime, endTime);
         auctionRepository.save(auction);
+        String typeOfLaunch = startTime.isBefore(Instant.now()) ? "Planned" : "Launched";
+        log.info(typeOfLaunch + " auction with id {} manually.", auction.getId());
         return auctionMapper.toManualLaunchResponse(auction);
     }
 
@@ -155,11 +168,13 @@ public class AuctionService {
             auction.updateAcceptedPrice(request.acceptedPrice());
         }
         if (request.itemId() != null) {
-            Item item = itemRepository.findById(request.itemId()).orElseThrow(NotFoundException::new);
+            Item item = itemRepository.findById(request.itemId()).orElseThrow(() ->
+                    new NotFoundException(String.format("Item with id %d not found", request.itemId()))
+            );
             auction.updateItem(item);
         }
-
         auctionRepository.save(auction);
+        log.info("Auction with id {} updated.", auction.getId());
         return auctionMapper.toAdminRecord(auction);
     }
 
@@ -172,6 +187,7 @@ public class AuctionService {
     public void deleteAuction(Long auctionId) {
         Auction auction = getAuctionOrThrow(auctionId);
         auctionRepository.delete(auction);
+        log.info("Auction with id {} deleted.", auctionId);
     }
 
     //*****************PUBLIC**********
@@ -215,10 +231,9 @@ public class AuctionService {
     }
 
     private Auction getAuctionOrThrow(Long auctionId) {
-        return auctionRepository.findById(auctionId).orElseThrow(() -> new NotFoundException(String.format(
-                "Auction with id %d not found",
-                auctionId
-        )));
+        return auctionRepository.findById(auctionId).orElseThrow(() ->
+                new NotFoundException(String.format("Auction with id %d not found", auctionId))
+        );
     }
 }
 

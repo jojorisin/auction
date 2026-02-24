@@ -2,6 +2,7 @@ package se.jensen.johanna.auctionsite.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -51,7 +53,8 @@ public class BidService {
      * @return {@link BidHistoryDTO} a list of all bids with an Integer as an alias for the bidder
      */
     public List<BidHistoryDTO> getBidsForActiveAuction(Long auctionId) {
-        Auction auction = auctionRepository.findWithBidsAndBiddersById(auctionId).orElseThrow(NotFoundException::new);
+        Auction auction = auctionRepository.findWithBidsAndBiddersById(auctionId).orElseThrow(() ->
+                new NotFoundException(String.format("Auction with id %d not found.", auctionId)));
 
         AtomicInteger counter = new AtomicInteger(1);
         Map<Long, Integer> userIdAlias = new HashMap<>();
@@ -114,7 +117,7 @@ public class BidService {
         Auction auction = auctionRepository.findById(auctionId).orElseThrow(NotFoundException::new);
         User bidder = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         int amount = bidRequest.amount();
-
+        log.info("Attempting to place bid - user {}, auction {}, amount {}", userId, auctionId, amount);
         BiddingResult result = auction.placeBid(bidder, amount);
 
         // crucial to save winner last for id and created at sorting
@@ -128,6 +131,13 @@ public class BidService {
         }
 
         auctionRepository.save(auction);
+        log.info(
+                "Bid placed - user {}, auction {}, leading: {}, is auto: {}",
+                userId,
+                auctionId,
+                result.newBidderLeads(),
+                result.isAuto()
+        );
         eventPublisher.publishEvent(new BidPlacedEvent(auctionId));
         return createBidResponse(result, auction);
     }

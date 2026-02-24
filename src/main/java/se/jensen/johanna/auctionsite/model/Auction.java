@@ -95,7 +95,6 @@ public class Auction extends BaseEntity {
                 : result.newBidderLeads() ? result.newBid() : result.otherBid();
 
         softClose(now);
-
         return result;
     }
 
