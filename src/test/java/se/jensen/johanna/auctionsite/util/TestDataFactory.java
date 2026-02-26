@@ -32,22 +32,11 @@ public class TestDataFactory {
                    .build();
     }
 
-    public static Item createItem(User seller) {
-        return Item.builder()
-                   .seller(seller)
-                   .title("Picasso")
-                   .description("painting")
-                   .category(Category.ART)
-                   .subCategory(Category.SubCategory.PAINTINGS)
-                   .valuation(10000)
-                   .build();
-    }
-
-    public static Auction createActiveAuction(Long id, Item item) {
+    public static Auction createActiveAuction(Long id, Item item, int acceptedPrice) {
         return Auction.builder()
                       .id(id)
                       .item(item)
-                      .acceptedPrice(500)
+                      .acceptedPrice(acceptedPrice)
                       .startTime(Instant.now())
                       .endTime(Instant.now().plus(5, ChronoUnit.MINUTES))
                       .status(AuctionStatus.ACTIVE)

@@ -6,14 +6,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import net.jcip.annotations.Immutable;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 /**
  * Represents a Bid Entity in the auction system
  */
 @Entity
-@Immutable
 @Table(name = "bids")
+@SQLDelete(sql = "UPDATE bids SET is_deleted = true WHERE bid_id = ?")
+@SQLRestriction("is_deleted = false")
 @AttributeOverride(name = "id", column = @Column(name = "bid_id"))
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -25,7 +27,7 @@ public class Bid extends BaseEntity {
     private Auction auction;
 
     @ManyToOne
-    @JoinColumn(name = "bidder_id", nullable = false)
+    @JoinColumn(name = "bidder_id", nullable = false, updatable = false)
     private User bidder;
 
     @Column(name = "bid_sum", nullable = false, updatable = false)
@@ -33,6 +35,9 @@ public class Bid extends BaseEntity {
 
     @Builder.Default
     private Boolean isAuto = false;
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 
     /**
      * Creates a new normal bid

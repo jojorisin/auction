@@ -64,6 +64,7 @@ public class ItemService {
     public AdminItemDTO updateItem(UpdateItemRequest dto, Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new NotFoundException(String.format("Item with id %d not found.", itemId)));
+        boolean isAtActiveAuction = auctionRepository.existsByItemIdAndStatus(item.getId(), AuctionStatus.ACTIVE);
 
         if (dto.category() != null && dto.subCategory() != null) {
             item.updateCategories(dto.category(), dto.subCategory());
@@ -74,14 +75,20 @@ public class ItemService {
         if (dto.description() != null) {
             item.updateDescription(dto.description());
         }
-        if (dto.valuation() != null) {
-            item.updateValuation(dto.valuation());
-        }
         if (dto.imageUrls() != null) {
             item.updateImageUrls(dto.imageUrls());
         }
         if (dto.imageUrl() != null) {
             item.addImage(dto.imageUrl());
+        }
+        if (dto.valuation() != null) {
+            if (isAtActiveAuction) {
+                throw new IllegalStateException(String.format(
+                        "Item with id %d is currently at auction and valuation can not be updated.",
+                        itemId
+                ));
+            }
+            item.updateValuation(dto.valuation());
         }
 
         itemRepository.save(item);

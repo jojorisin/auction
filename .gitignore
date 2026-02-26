@@ -46,4 +46,5 @@ src/main/resources/application.properties
 data/
 *.db
 *.log
-src/test/resources/application-test.properties
+src/test/resources/application-test.properties*.pem
+test.html

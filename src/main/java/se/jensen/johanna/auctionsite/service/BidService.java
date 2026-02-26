@@ -144,10 +144,10 @@ public class BidService {
     }
 
     public BidResponse createBidResponse(BiddingResult result, Auction auction) {
-        BidStatus status = result.newBidderLeads() ? BidStatus.LEADING : BidStatus.OUTBID;
         int currentHighest = auction.getWinningBid().map(Bid::getBidSum).orElse(0);
         int bidSum = result.newBid() != null ? result.newBid().getBidSum() : 0;
         Integer maxBidSum = result.maxBid() != null ? result.maxBid().getMaxSum() : null;
+        BidStatus status = result.newBidderLeads() ? auction.acceptedMet() ? BidStatus.LEADING : BidStatus.BELOW_ACCEPTED_LEADING : BidStatus.OUTBID;
         return new BidResponse(bidSum, status, currentHighest, result.isAuto(), maxBidSum);
     }
 }
