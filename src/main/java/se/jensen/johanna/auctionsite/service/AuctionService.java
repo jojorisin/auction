@@ -169,6 +169,12 @@ public class AuctionService {
      */
     public AdminAuctionResponse updateAuction(Long auctionId, UpdateAuctionRequest request) {
         Auction auction = getAuctionOrThrow(auctionId);
+        if (auction.getStatus() == AuctionStatus.ACTIVE) {
+            throw new IllegalStateException(String.format(
+                    "Auction with id %d is active and can not be updated",
+                    auctionId
+            ));
+        }
 
         if (request.acceptedPrice() != null) {
             auction.updateAcceptedPrice(request.acceptedPrice());

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.List;
 @Entity
 @Table(name = "items")
 @AttributeOverride(name = "id", column = @Column(name = "item_id"))
+@SQLDelete(sql = "UPDATE items SET is_deleted = true WHERE item_id = ?")
+@SQLRestriction("is_deleted = false")
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -45,6 +49,9 @@ public class Item extends BaseEntity {
 
     @Column(nullable = false)
     private Integer valuation;
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 
     public static Item create(
             User seller,

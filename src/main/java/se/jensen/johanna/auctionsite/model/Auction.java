@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import se.jensen.johanna.auctionsite.dto.BiddingResult;
 import se.jensen.johanna.auctionsite.exception.AuctionClosedException;
 import se.jensen.johanna.auctionsite.exception.InvalidBidException;
@@ -23,6 +25,8 @@ import java.util.Optional;
 @Entity
 @Table(name = "auctions")
 @AttributeOverride(name = "id", column = @Column(name = "auction_id"))
+@SQLDelete(sql = "UPDATE auctions SET is_deleted = true WHERE auction_id = ? AND version = ?")
+@SQLRestriction("is_deleted=false")
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -45,6 +49,9 @@ public class Auction extends BaseEntity {
     private Instant startTime;
 
     private Instant endTime;
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 
     @Version
     private Long version;
@@ -69,15 +76,21 @@ public class Auction extends BaseEntity {
 
         BiddingResult result;
 
-        // a raised bid is not put to auction immediately.
-        // it does not trigger a softclose.
-        // it can be raised with any amount.
+        // only a leading bidder can raise a bid
+        //  if over accepted - only max bid is created
+        // if under accepted - bid is put to auction and raised immediately
         if (winningBid != null && winningBid.getBidder().getId().equals(bidder.getId())) {
             int limitToRaise = leadingMaxBid().map(MaxBid::getMaxSum).orElse(winningBid.getBidSum());
             if (amount <= limitToRaise) {
                 throw new IllegalArgumentException("Place a higher bid to raise your bid.");
             }
-            return handleRaisedBid(bidder, amount);
+            BiddingResult raisedResult = handleRaisedBid(bidder, amount);
+            if (raisedResult.newBid() != null) {
+                winningBid = raisedResult.newBid();
+                softClose(now);
+                return raisedResult;
+            }
+            return raisedResult;
         }
 
         checkNewBidSumIsValid(amount);
@@ -110,7 +123,7 @@ public class Auction extends BaseEntity {
         if (isNewBidMaxBid) {
             maxBid = MaxBid.create(this, bidder, amount);
             maxBids.add(maxBid);
-            amountToPut = minNextBid;
+            amountToPut = Math.min(Math.max(minNextBid, acceptedPrice), amount);
         }
 
         Bid newBid = isNewBidMaxBid ? Bid.generateBidFromMaxBid(this, bidder, amountToPut) : Bid.createBid(
@@ -124,13 +137,21 @@ public class Auction extends BaseEntity {
 
     /**
      * Creates a higher max bid for the current leading bidder
+     * and creates a new bid to put if under accepted
      *
      * @param bidder the leading bidder that is raising
      * @param amount the new max amount
      */
     private BiddingResult handleRaisedBid(User bidder, int amount) {
         MaxBid maxBid = MaxBid.create(this, bidder, amount);
-        this.maxBids.add(maxBid);
+        maxBids.add(maxBid);
+        boolean acceptedMet = leadingAmount() >= acceptedPrice;
+        if (!acceptedMet) {
+            int bidToPut = Math.min(Math.max(minNextBid(), acceptedPrice), amount);
+            Bid newBid = Bid.generateBidFromMaxBid(this, bidder, bidToPut);
+            bids.add(newBid);
+            return new BiddingResult(true, newBid, null, true, maxBid);
+        }
         return new BiddingResult(true, null, null, true, maxBid);
     }
 
@@ -215,7 +236,7 @@ public class Auction extends BaseEntity {
         if (isNewBidMaxBid) {
             newMax = MaxBid.create(this, bidder, amount);
             this.maxBids.add(newMax);
-            amountToPut = minNextBid;
+            amountToPut = Math.min(Math.max(minNextBid, acceptedPrice), amount);
         }
         Bid bidToPut = isNewBidMaxBid ? Bid.generateBidFromMaxBid(this, bidder, amountToPut) : Bid.createBid(
                 this,
@@ -255,6 +276,12 @@ public class Auction extends BaseEntity {
         if (acceptedPrice == null || acceptedPrice < 0) {
             throw new IllegalArgumentException("Accepted price must be a positive number.");
         }
+        if (acceptedPrice > item.getValuation()) {
+            throw new IllegalArgumentException(String.format(
+                    "Accepted price can't be higher than the item's valuation of %d",
+                    item.getValuation()
+            ));
+        }
         this.acceptedPrice = acceptedPrice;
     }
 
@@ -268,7 +295,6 @@ public class Auction extends BaseEntity {
         if (startTime == null || endTime == null) {
             throw new IllegalArgumentException("Start and end time must be set.");
         }
-
         if (!isReadyToLaunch()) {
             throw new IllegalStateException("Auction is missing required fields to launch.");
         }
@@ -331,6 +357,10 @@ public class Auction extends BaseEntity {
 
     public boolean isReadyToLaunch() {
         return item != null && item.isReadyForAuction() && acceptedPrice != null && acceptedPrice >= 0 && status == AuctionStatus.INACTIVE;
+    }
+
+    public boolean acceptedMet() {
+        return acceptedPrice != null && leadingAmount() >= acceptedPrice;
     }
 }
 

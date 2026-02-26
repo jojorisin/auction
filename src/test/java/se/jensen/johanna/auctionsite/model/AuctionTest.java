@@ -23,6 +23,8 @@ class AuctionTest {
     int increment;
     int normalBidAmount;
     int maxBidAmount;
+    int acceptedAmount;
+    int overAcceptedAmount;
 
     private static final Long BIDDER_ID = 1L;
     private static final Long OTHER_BIDDER_ID = 2L;
@@ -31,13 +33,17 @@ class AuctionTest {
 
     @BeforeEach
     void setUp() {
+
+        // the increment is 500 for a 10000 valuation
         item = TestDataFactory.createItem(ITEM_ID, 10000);
-        auction = TestDataFactory.createActiveAuction(AUCTION_ID, item);
+        auction = TestDataFactory.createActiveAuction(AUCTION_ID, item, 3000);
         currentBidder = TestDataFactory.createUser(BIDDER_ID);
         competingBidder = TestDataFactory.createUser(OTHER_BIDDER_ID);
         increment = BidTier.getBidIncrement(item.getValuation());
         normalBidAmount = increment;
         maxBidAmount = increment * 3;
+        acceptedAmount = auction.getAcceptedPrice();
+        overAcceptedAmount = acceptedAmount + increment;
     }
 
     @Test
@@ -54,22 +60,23 @@ class AuctionTest {
     }
 
     @Test
-    @DisplayName("Should create max bid and put bid at increment when bid is first")
-    void shouldCreateMaxBid_andPutBidAtIncrement() {
-        BiddingResult result = auction.placeBid(currentBidder, maxBidAmount);
-        assertThat(result.newBid().getBidSum()).isEqualTo(increment);
-        assertThat(auction.getBids()).hasSize(1);
-        assertThat(auction.getMaxBids()).hasSize(1);
-        assertThat(result.maxBid()).isNotNull();
-        assertThat(result.newBid()).isNotNull();
+    @DisplayName("Should create max bid and put bid at accepted price")
+    void shouldCreateMaxBid_andPutBidAtAcceptedPrice() {
+        BiddingResult result = auction.placeBid(currentBidder, overAcceptedAmount);
+        assertThat(result.maxBid().getMaxSum()).isEqualTo(overAcceptedAmount);
+        assertThat(result.newBid().getBidSum()).isEqualTo(auction.getAcceptedPrice());
+        System.out.println(result.maxBid().getMaxSum());
+        System.out.println(result.newBid().getBidSum());
     }
 
     @Test
-    @DisplayName("when raising bid with current normal bid, should create new max bid and not put bid")
+    @DisplayName("when raising bid with current over accepted normal bid, should create new max bid and not put bid")
     void whenRaised_shouldCreateMaxBid_andNotPutBid_whenCurrentIsNormalBid() {
-        BiddingResult firstResult = auction.placeBid(currentBidder, normalBidAmount);
-        BiddingResult raisedResult = auction.placeBid(currentBidder, maxBidAmount);
+        BiddingResult firstOverAcceptedBid = auction.placeBid(competingBidder, acceptedAmount);
+        BiddingResult firstResult = auction.placeBid(currentBidder, acceptedAmount + increment);
+        BiddingResult raisedResult = auction.placeBid(currentBidder, acceptedAmount + increment + 1);
 
+        assertThat(firstOverAcceptedBid.newBid().getBidSum()).isEqualTo(auction.getAcceptedPrice());
         assertThat(firstResult.isAuto()).isFalse();
         assertThat(raisedResult.maxBid()).isNotNull();
         assertThat(raisedResult.newBid()).isNull();
@@ -77,10 +84,10 @@ class AuctionTest {
     }
 
     @Test
-    @DisplayName("when raising bid with current max bid, should create a new max bid and not put bid ")
+    @DisplayName("when raising bid with current over accepted max bid, should create a new max bid and not put bid ")
     void whenRaised_shouldCreateMaxBid_andNotPutBidWhenCurrentIsMaxBid() {
-        BiddingResult firstResult = auction.placeBid(currentBidder, maxBidAmount);
-        BiddingResult raisedResult = auction.placeBid(currentBidder, maxBidAmount + 1);
+        BiddingResult firstResult = auction.placeBid(currentBidder, overAcceptedAmount);
+        BiddingResult raisedResult = auction.placeBid(currentBidder, overAcceptedAmount + 1);
 
         assertThat(auction.getBids()).hasSize(1);
         assertThat(auction.getMaxBids()).hasSize(2);
@@ -90,15 +97,29 @@ class AuctionTest {
     }
 
     @Test
+    @DisplayName("when raising bid with current under accepted bid, should create max bid and put max amount, even if still under accepted")
+    void whenRaised_shouldCreateMaxBid_andPutBidAtAcceptedPrice_whenCurrentIsUnderAccepted() {
+        BiddingResult firstResult = auction.placeBid(currentBidder, normalBidAmount);
+        BiddingResult raisedResult = auction.placeBid(currentBidder, acceptedAmount - 1);
+
+        assertThat(auction.getBids()).hasSize(2);
+        assertThat(raisedResult.newBid().getBidSum()).isEqualTo(acceptedAmount - 1);
+        assertThat(raisedResult.maxBid().getMaxSum()).isEqualTo(acceptedAmount - 1);
+    }
+
+    @Test
     @DisplayName("Should generate bid from first max bid when triggered")
     void shouldActivateHiddenMaxBid_AndGenerateBidForHiddenMax() {
-        BiddingResult result1 = auction.placeBid(competingBidder, maxBidAmount);
+        // the first bidder bids a very high max bid
+        BiddingResult result1 = auction.placeBid(competingBidder, acceptedAmount * 2);
 
+        //bid sum to put from max is accepted price
+        assertThat(result1.newBid().getBidSum()).isEqualTo(acceptedAmount);
         assertThat(auction.getBids()).hasSize(1);
         assertThat(auction.getMaxBids()).hasSize(1);
 
-        int currentHighest = result1.newBid().getBidSum();
-        BiddingResult result2 = auction.placeBid(currentBidder, currentHighest + increment);
+        // bidder is raising with min next bid
+        BiddingResult result2 = auction.placeBid(currentBidder, auction.minNextBid());
 
         assertThat(auction.getBids()).hasSize(3);
         assertThat(auction.getMaxBids()).hasSize(1);
@@ -110,9 +131,9 @@ class AuctionTest {
     @Test
     @DisplayName("First bid should win when competing max bid have the same amount")
     void firstBidShouldWinWhenAmountIsTheSame() {
-        auction.placeBid(competingBidder, maxBidAmount);
+        auction.placeBid(competingBidder, overAcceptedAmount * 2);
 
-        BiddingResult result2 = auction.placeBid(currentBidder, maxBidAmount);
+        BiddingResult result2 = auction.placeBid(currentBidder, overAcceptedAmount * 2);
 
         assertThat(result2.newBidderLeads()).isFalse();
         assertThat(auction.getBids()).hasSize(3);
