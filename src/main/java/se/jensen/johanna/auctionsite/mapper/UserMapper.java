@@ -2,8 +2,10 @@ package se.jensen.johanna.auctionsite.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import se.jensen.johanna.auctionsite.dto.my.AddressRequest;
 import se.jensen.johanna.auctionsite.dto.my.AddressResponse;
-import se.jensen.johanna.auctionsite.dto.my.UserDTO;
+import se.jensen.johanna.auctionsite.dto.my.UserResponse;
+import se.jensen.johanna.auctionsite.model.Address;
 import se.jensen.johanna.auctionsite.model.User;
 
 @Mapper(componentModel = "spring")
@@ -20,6 +22,19 @@ public interface UserMapper {
     AddressResponse toAddressResponse(User user);
 
     @Mapping(target = "address", source = "user")
-    UserDTO toAppUserDTO(User user);
+    UserResponse toUserResponse(User user);
+
+    default Address toAddress(AddressRequest request) {
+        return Address.create(
+                request.firstName(),
+                request.lastName(),
+                request.co(),
+                request.streetName(),
+                request.streetName2(),
+                request.postalCode(),
+                request.city(),
+                request.country()
+        );
+    }
 }
 

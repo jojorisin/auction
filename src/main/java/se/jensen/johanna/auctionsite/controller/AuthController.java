@@ -7,12 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import se.jensen.johanna.auctionsite.dto.LoginResponse;
-import se.jensen.johanna.auctionsite.dto.LoginResult;
-import se.jensen.johanna.auctionsite.dto.RefreshResponse;
-import se.jensen.johanna.auctionsite.dto.RefreshResult;
-import se.jensen.johanna.auctionsite.dto.auth.LoginRequest;
-import se.jensen.johanna.auctionsite.dto.auth.RegisterUserRequest;
+import se.jensen.johanna.auctionsite.dto.auth.*;
 import se.jensen.johanna.auctionsite.service.AuthService;
 import se.jensen.johanna.auctionsite.service.UserService;
 import se.jensen.johanna.auctionsite.util.CookieUtils;
@@ -48,8 +43,11 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<RefreshResponse> refresh(
-            @CookieValue(name = "refreshToken") String oldRefreshStr
+            @CookieValue(name = "refreshToken", required = false) String oldRefreshStr
     ) {
+        if (oldRefreshStr == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         RefreshResult result = authService.refresh(oldRefreshStr);
         ResponseCookie responseCookie = cookieUtils.createRefreshTokenCookie(result.refreshToken());
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString())

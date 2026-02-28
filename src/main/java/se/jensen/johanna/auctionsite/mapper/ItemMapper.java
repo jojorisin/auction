@@ -2,16 +2,30 @@ package se.jensen.johanna.auctionsite.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import se.jensen.johanna.auctionsite.dto.ItemDTO;
-import se.jensen.johanna.auctionsite.dto.admin.AdminItemDTO;
+import se.jensen.johanna.auctionsite.dto.ItemResponse;
+import se.jensen.johanna.auctionsite.dto.admin.AddItemRequest;
+import se.jensen.johanna.auctionsite.dto.admin.AdminItemResponse;
 import se.jensen.johanna.auctionsite.model.Item;
+import se.jensen.johanna.auctionsite.model.User;
 
 @Mapper(componentModel = "spring")
 public interface ItemMapper {
 
     @Mapping(target = "sellerId", source = "seller.id")
     @Mapping(target = "itemId", source = "id")
-    AdminItemDTO toRecord(Item item);
+    AdminItemResponse toRecord(Item item);
 
-    ItemDTO toShowRecord(Item item);
+    ItemResponse toItemResponse(Item item);
+
+    default Item toItem(AddItemRequest request, User seller) {
+        return Item.create(
+                seller,
+                request.category(),
+                request.subCategory(),
+                request.title(),
+                request.description(),
+                request.valuation(),
+                request.imageUrls()
+        );
+    }
 }

@@ -1,13 +1,12 @@
 package se.jensen.johanna.auctionsite.model;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import se.jensen.johanna.auctionsite.dto.BiddingResult;
 import se.jensen.johanna.auctionsite.exception.AuctionClosedException;
 import se.jensen.johanna.auctionsite.exception.InvalidBidException;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
-import se.jensen.johanna.auctionsite.service.enums.BidTier;
+import se.jensen.johanna.auctionsite.util.AuctionTestBase;
 import se.jensen.johanna.auctionsite.util.TestDataFactory;
 
 import java.time.Instant;
@@ -15,36 +14,7 @@ import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.*;
 
-class AuctionTest {
-    private Auction auction;
-    private User currentBidder;
-    private Item item;
-    private User competingBidder;
-    int increment;
-    int normalBidAmount;
-    int maxBidAmount;
-    int acceptedAmount;
-    int overAcceptedAmount;
-
-    private static final Long BIDDER_ID = 1L;
-    private static final Long OTHER_BIDDER_ID = 2L;
-    private static final Long ITEM_ID = 3L;
-    private static final Long AUCTION_ID = 4L;
-
-    @BeforeEach
-    void setUp() {
-
-        // the increment is 500 for a 10000 valuation
-        item = TestDataFactory.createItem(ITEM_ID, 10000);
-        auction = TestDataFactory.createActiveAuction(AUCTION_ID, item, 3000);
-        currentBidder = TestDataFactory.createUser(BIDDER_ID);
-        competingBidder = TestDataFactory.createUser(OTHER_BIDDER_ID);
-        increment = BidTier.getBidIncrement(item.getValuation());
-        normalBidAmount = increment;
-        maxBidAmount = increment * 3;
-        acceptedAmount = auction.getAcceptedPrice();
-        overAcceptedAmount = acceptedAmount + increment;
-    }
+class AuctionTest extends AuctionTestBase {
 
     @Test
     @DisplayName("Should create a normal bid for first bidder")

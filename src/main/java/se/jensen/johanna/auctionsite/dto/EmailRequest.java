@@ -1,17 +1,17 @@
 package se.jensen.johanna.auctionsite.dto;
 
-import se.jensen.johanna.auctionsite.dto.enums.BidStatus;
+import se.jensen.johanna.auctionsite.dto.enums.EmailType;
 
 /**
+ * @param type
  * @param email
- * @param status
  * @param auctionId
  * @param imageUrl
  * @param title
  */
-public record EmailTypeDTO(
+public record EmailRequest(
+        EmailType type,
         String email,
-        BidStatus status,
         Long auctionId,
         String imageUrl,
         String title

@@ -13,7 +13,7 @@ import java.util.List;
  * @param valuation  Valuation of the item
  * @param highestBid Current highest bid
  */
-public record AuctionsListDTO(
+public record AuctionsListResponse(
         Long auctionId,
         List<String> imageUrls,
         String title,

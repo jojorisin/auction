@@ -1,6 +1,5 @@
 package se.jensen.johanna.auctionsite.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -8,7 +7,8 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import se.jensen.johanna.auctionsite.dto.BidHistoryDTO;
+import org.springframework.transaction.annotation.Transactional;
+import se.jensen.johanna.auctionsite.dto.BidHistoryResponse;
 import se.jensen.johanna.auctionsite.dto.BidRequest;
 import se.jensen.johanna.auctionsite.dto.BidResponse;
 import se.jensen.johanna.auctionsite.dto.BiddingResult;
@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class BidService {
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
@@ -49,9 +48,10 @@ public class BidService {
      * Retrieves a list of all bids for an auction
      *
      * @param auctionId ID of auction to fetch bids for
-     * @return {@link BidHistoryDTO} a list of all bids with an Integer as an alias for the bidder
+     * @return {@link BidHistoryResponse} a list of all bids with an Integer as an alias for the bidder
      */
-    public List<BidHistoryDTO> getBidsForActiveAuction(Long auctionId) {
+    @Transactional(readOnly = true)
+    public List<BidHistoryResponse> getBidsForActiveAuction(Long auctionId) {
         Auction auction = auctionRepository.findWithBidsAndBiddersById(auctionId).orElseThrow(() ->
                 new NotFoundException(String.format("Auction with id %d not found.", auctionId)));
 
@@ -68,7 +68,7 @@ public class BidService {
         return auction.getBids().stream().map(bid -> {
             Long bidderId = bid.getBidder().getId();
             Integer alias = userIdAlias.get(bidderId);
-            return new BidHistoryDTO(bid.getBidSum(), bid.getCreatedAt(), bid.getIsAuto(), alias, bidderId);
+            return new BidHistoryResponse(bid.getBidSum(), bid.getCreatedAt(), bid.getIsAuto(), alias, bidderId);
         }).toList();
     }
 
@@ -78,6 +78,7 @@ public class BidService {
      * @param userId ID of user to fetch bids for
      * @return a list of {@link MyActiveBids} contains information about the bids and auction
      */
+    @Transactional(readOnly = true)
     public List<MyActiveBids> getMyActiveBids(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format("User with id %d not found.", userId));
@@ -117,6 +118,9 @@ public class BidService {
                 new NotFoundException(String.format("Auction with id %d not found", auctionId)));
         User bidder = userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundException(String.format("User with id %d not found", userId)));
+        if (bidder.getId().equals(auction.getItem().getSeller().getId())) {
+            throw new IllegalArgumentException("You can not bid on your own item.");
+        }
         int amount = bidRequest.amount();
         log.info("Attempting to place bid - user {}, auction {}, amount {}", userId, auctionId, amount);
         BiddingResult result = auction.placeBid(bidder, amount);

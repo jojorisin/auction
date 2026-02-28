@@ -5,7 +5,7 @@ import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import java.time.Instant;
 
 public record AdminAuctionResponse(
-        AdminItemDTO adminItemDTO,
+        AdminItemResponse adminItemResponse,
         Long auctionId,
         Long buyerId,
         AuctionStatus status,

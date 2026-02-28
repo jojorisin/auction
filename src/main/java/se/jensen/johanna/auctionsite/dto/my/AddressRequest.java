@@ -3,6 +3,16 @@ package se.jensen.johanna.auctionsite.dto.my;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
+/**
+ * @param firstName
+ * @param lastName
+ * @param co
+ * @param streetName
+ * @param streetName2
+ * @param postalCode
+ * @param city
+ * @param country
+ */
 public record AddressRequest(
         @NotBlank(message = "First name is required")
         String firstName,

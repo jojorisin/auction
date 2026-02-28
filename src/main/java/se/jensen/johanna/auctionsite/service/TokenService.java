@@ -38,7 +38,7 @@ public class TokenService {
                                              .build();
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
-        log.info("Generated JWT token for user {} with scope {}.", userDetails.getUsername(), scope);
+        log.info("Generated JWT token for user {} with scope {}.", userDetails.getUserId(), scope);
         return token;
     }
 }

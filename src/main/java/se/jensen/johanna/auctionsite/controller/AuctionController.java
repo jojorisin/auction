@@ -8,8 +8,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import se.jensen.johanna.auctionsite.dto.AuctionDTO;
-import se.jensen.johanna.auctionsite.dto.AuctionsListDTO;
+import se.jensen.johanna.auctionsite.dto.AuctionResponse;
+import se.jensen.johanna.auctionsite.dto.AuctionsListResponse;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.service.AuctionService;
 
@@ -30,17 +30,17 @@ public class AuctionController {
      * Optional sorting of category and subcategory
      */
     @GetMapping
-    public ResponseEntity<Page<AuctionsListDTO>> getAllAuctions(
+    public ResponseEntity<Page<AuctionsListResponse>> getAllAuctions(
             @ParameterObject @PageableDefault(size = 20, sort = "endTime", direction = Sort.Direction.DESC)
             Pageable pageable,
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) Category.SubCategory subCategory
     ) {
-        return ResponseEntity.ok().body(auctionService.getAllActiveAuctions(category, subCategory, pageable));
+        return ResponseEntity.ok(auctionService.getAllActiveAuctions(category, subCategory, pageable));
     }
 
     @GetMapping("/{auctionId}")
-    public ResponseEntity<AuctionDTO> getAuction(@PathVariable Long auctionId) {
+    public ResponseEntity<AuctionResponse> getAuction(@PathVariable Long auctionId) {
         return ResponseEntity.ok(auctionService.getActiveAuction(auctionId));
     }
 

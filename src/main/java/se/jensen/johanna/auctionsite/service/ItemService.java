@@ -1,11 +1,11 @@
 package se.jensen.johanna.auctionsite.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import se.jensen.johanna.auctionsite.dto.admin.AddItemRequest;
-import se.jensen.johanna.auctionsite.dto.admin.AdminItemDTO;
+import se.jensen.johanna.auctionsite.dto.admin.AdminItemResponse;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateItemRequest;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
 import se.jensen.johanna.auctionsite.mapper.ItemMapper;
@@ -13,6 +13,7 @@ import se.jensen.johanna.auctionsite.model.Item;
 import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.model.enums.Category;
+import se.jensen.johanna.auctionsite.model.enums.ItemStatus;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.ItemRepository;
 import se.jensen.johanna.auctionsite.repository.UserRepository;
@@ -22,73 +23,67 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ItemMapper itemMapper;
     private final AuctionRepository auctionRepository;
 
-    public List<AdminItemDTO> findAllItems(Category category, Category.SubCategory subCategory) {
+    @Transactional(readOnly = true)
+    public List<AdminItemResponse> findAllItems(Category category, Category.SubCategory subCategory) {
         List<Item> items = itemRepository.findAllItems(category, subCategory);
         return items.stream().map(itemMapper::toRecord).toList();
     }
 
-    public AdminItemDTO findItem(Long itemId) {
+    @Transactional(readOnly = true)
+    public AdminItemResponse findItem(Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new NotFoundException(String.format("Item with id %d not found.", itemId))
         );
         return itemMapper.toRecord(item);
     }
 
-    public AdminItemDTO addItem(AddItemRequest request) {
+    @Transactional
+    public AdminItemResponse addItem(AddItemRequest request) {
         User seller = userRepository.findById(request.sellerId()).orElseThrow(() ->
                 new NotFoundException(String.format(
                         "Seller with id %d not found when creating item.",
                         request.sellerId()
                 )));
-        Item item = Item.create(
-                seller,
-                request.category(),
-                request.subCategory(),
-                request.title(),
-                request.description(),
-                request.valuation(),
-                request.imageUrls()
-        );
+        Item item = itemMapper.toItem(request, seller);
         itemRepository.save(item);
         log.info("Item {} created for seller {}", item.getId(), item.getSeller().getId());
         return itemMapper.toRecord(item);
     }
 
-    public AdminItemDTO updateItem(UpdateItemRequest dto, Long itemId) {
+    @Transactional
+    public AdminItemResponse updateItem(Long itemId, UpdateItemRequest request) {
         Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new NotFoundException(String.format("Item with id %d not found.", itemId)));
-        boolean isAtActiveAuction = auctionRepository.existsByItemIdAndStatus(item.getId(), AuctionStatus.ACTIVE);
 
-        if (dto.category() != null && dto.subCategory() != null) {
-            item.updateCategories(dto.category(), dto.subCategory());
+        if (request.category() != null && request.subCategory() != null) {
+            item.updateCategories(request.category(), request.subCategory());
         }
-        if (dto.title() != null) {
-            item.updateTitle(dto.title());
+        if (request.title() != null) {
+            item.updateTitle(request.title());
         }
-        if (dto.description() != null) {
-            item.updateDescription(dto.description());
+        if (request.description() != null) {
+            item.updateDescription(request.description());
         }
-        if (dto.imageUrls() != null) {
-            item.updateImageUrls(dto.imageUrls());
+        if (request.imageUrls() != null) {
+            item.updateImageUrls(request.imageUrls());
         }
-        if (dto.imageUrl() != null) {
-            item.addImage(dto.imageUrl());
+        if (request.imageUrl() != null) {
+            item.addImage(request.imageUrl());
         }
-        if (dto.valuation() != null) {
-            if (isAtActiveAuction) {
+        if (request.valuation() != null) {
+            if (item.getStatus() != ItemStatus.INACTIVE) {
                 throw new IllegalStateException(String.format(
                         "Item with id %d is currently at auction and valuation can not be updated.",
                         itemId
                 ));
             }
-            item.updateValuation(dto.valuation());
+            item.updateValuation(request.valuation());
         }
 
         itemRepository.save(item);
@@ -96,6 +91,7 @@ public class ItemService {
         return itemMapper.toRecord(item);
     }
 
+    @Transactional
     public void deleteItem(Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new NotFoundException(String.format("Item with id %d not found", itemId)));

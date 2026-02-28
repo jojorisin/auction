@@ -4,7 +4,7 @@ import se.jensen.johanna.auctionsite.model.enums.Category;
 
 import java.util.List;
 
-public record AdminItemDTO(
+public record AdminItemResponse(
         Long itemId,
         Long sellerId,
         Category category,
