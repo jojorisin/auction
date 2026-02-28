@@ -6,9 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 import se.jensen.johanna.auctionsite.model.enums.Category;
+import se.jensen.johanna.auctionsite.model.enums.ItemStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +18,6 @@ import java.util.List;
 @Entity
 @Table(name = "items")
 @AttributeOverride(name = "id", column = @Column(name = "item_id"))
-@SQLDelete(sql = "UPDATE items SET is_deleted = true WHERE item_id = ?")
-@SQLRestriction("is_deleted = false")
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -30,12 +27,12 @@ public class Item extends BaseEntity {
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Category category;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Category.SubCategory subCategory;
 
     @Column(nullable = false)
@@ -50,8 +47,10 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private Integer valuation;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted = false;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private ItemStatus status = ItemStatus.INACTIVE;
 
     public static Item create(
             User seller,
@@ -108,6 +107,11 @@ public class Item extends BaseEntity {
         this.valuation = valuation;
     }
 
+    public String getPrimaryImageUrl() {
+        if (imageUrls.isEmpty()) return null;
+        return imageUrls.get(0);
+    }
+
     public void addImage(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank()) throw new IllegalArgumentException("Image url is required");
         imageUrls.add(imageUrl);
@@ -130,5 +134,9 @@ public class Item extends BaseEntity {
 
     private static boolean checkValidSub(Category category, Category.SubCategory subCategory) {
         return subCategory != null && subCategory.getCategory().equals(category);
+    }
+
+    public void updateStatus(ItemStatus status) {
+        this.status = status;
     }
 }

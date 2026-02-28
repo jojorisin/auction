@@ -1,4 +1,4 @@
-package se.jensen.johanna.auctionsite.dto;
+package se.jensen.johanna.auctionsite.dto.auth;
 
 public record LoginResult(
         LoginResponse loginResponse,

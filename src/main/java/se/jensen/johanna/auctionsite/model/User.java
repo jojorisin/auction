@@ -1,6 +1,7 @@
 package se.jensen.johanna.auctionsite.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -36,6 +37,7 @@ public class User extends BaseEntity {
     private String phoneNr;
 
     @Embedded
+    @Valid
     private Address address;
 
     public static User register(String email, String hashedPassword, Role role) {

@@ -6,7 +6,7 @@ import java.time.Instant;
 
 public record ManualLaunchResponse(
         Long auctionId,
-        AdminItemDTO adminItemDTO,
+        AdminItemResponse adminItemResponse,
         Integer acceptedPrice,
         Instant startTime,
         Instant endTime,

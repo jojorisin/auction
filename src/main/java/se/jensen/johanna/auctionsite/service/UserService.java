@@ -1,10 +1,10 @@
 package se.jensen.johanna.auctionsite.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import se.jensen.johanna.auctionsite.dto.ResponseMessage;
 import se.jensen.johanna.auctionsite.dto.auth.RegisterUserRequest;
 import se.jensen.johanna.auctionsite.dto.my.*;
@@ -13,7 +13,6 @@ import se.jensen.johanna.auctionsite.exception.PasswordMisMatchException;
 import se.jensen.johanna.auctionsite.exception.UserAlreadyExistsException;
 import se.jensen.johanna.auctionsite.exception.UserNotFoundException;
 import se.jensen.johanna.auctionsite.mapper.UserMapper;
-import se.jensen.johanna.auctionsite.model.Address;
 import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.model.enums.Role;
 import se.jensen.johanna.auctionsite.repository.UserRepository;
@@ -21,12 +20,12 @@ import se.jensen.johanna.auctionsite.repository.UserRepository;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
+    @Transactional
     public void registerUser(RegisterUserRequest userDto) {
         if (userRepository.existsByEmail(userDto.email())) {
             throw new UserAlreadyExistsException(String.format(
@@ -42,12 +41,14 @@ public class UserService {
         log.info("User with email {} registered successfully.", userDto.email());
     }
 
-    public UserDTO getAuthenticatedUser(Long userId) {
+    @Transactional(readOnly = true)
+    public UserResponse getAuthenticatedUser(Long userId) {
         User user = getUserOrThrow(userId);
-        return userMapper.toAppUserDTO(user);
+        return userMapper.toUserResponse(user);
     }
 
-    public ResponseMessage updatePassword(UpdatePasswordDTO passwordDTO, Long userId) {
+    @Transactional
+    public ResponseMessage updatePassword(Long userId, UpdatePasswordRequest passwordDTO) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(passwordDTO.oldPassword(), user.getHashedPassword()) || !passwordDTO.newPassword()
@@ -60,11 +61,12 @@ public class UserService {
         return new ResponseMessage("Password has been updated successfully.");
     }
 
-    public UserDTO updateContactInfo(Long userId, ContactInfoRequest request) {
+    @Transactional
+    public UserResponse updateContactInfo(Long userId, ContactInfoRequest request) {
         User user = getUserOrThrow(userId);
         user.changeContactInfo(request.phoneNr());
         log.info("Contact info for user {} updated successfully.", userId);
-        return userMapper.toAppUserDTO(user);
+        return userMapper.toUserResponse(user);
     }
 
     /**
@@ -74,19 +76,10 @@ public class UserService {
      * @param request {@link AddressRequest} Contains address fields with validation
      * @return {@link AddressResponse} The newly updated address
      */
+    @Transactional
     public AddressResponse updateAddress(Long userId, AddressRequest request) {
         User user = getUserOrThrow(userId);
-        Address address = Address.create(
-                request.firstName(),
-                request.lastName(),
-                request.co(),
-                request.streetName(),
-                request.streetName2(),
-                request.postalCode(),
-                request.city(),
-                request.country()
-        );
-        user.changeAddress(address);
+        user.changeAddress(userMapper.toAddress(request));
         userRepository.save(user);
         log.info("Address for user {} updated successfully.", userId);
         return userMapper.toAddressResponse(user);

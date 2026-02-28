@@ -8,7 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import se.jensen.johanna.auctionsite.dto.BidHistoryDTO;
+import se.jensen.johanna.auctionsite.dto.BidHistoryResponse;
 import se.jensen.johanna.auctionsite.dto.BidRequest;
 import se.jensen.johanna.auctionsite.dto.BidResponse;
 import se.jensen.johanna.auctionsite.service.BidService;
@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping
 public class BidController {
     private final BidService bidService;
     private final JwtUtils jwtUtils;
@@ -28,14 +27,14 @@ public class BidController {
     public ResponseEntity<BidResponse> placeBid(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long auctionId,
-            @RequestBody @Valid BidRequest bidRequest
+            @RequestBody @Valid BidRequest request
     ) {
-        BidResponse responseDTO = bidService.placeBid(bidRequest, jwtUtils.extractUserId(jwt), auctionId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(bidService.placeBid(request, jwtUtils.extractUserId(jwt), auctionId));
     }
 
     @GetMapping("/auctions/{auctionId}/bids")
-    public ResponseEntity<List<BidHistoryDTO>> getBidHistory(@PathVariable Long auctionId) {
+    public ResponseEntity<List<BidHistoryResponse>> getBidHistory(@PathVariable Long auctionId) {
         return ResponseEntity.ok(bidService.getBidsForActiveAuction(auctionId));
     }
 }

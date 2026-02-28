@@ -1,6 +1,6 @@
 package se.jensen.johanna.auctionsite.dto.my;
 
-public record UserDTO(
+public record UserResponse(
         Long userId,
         String email,
         String phoneNr,

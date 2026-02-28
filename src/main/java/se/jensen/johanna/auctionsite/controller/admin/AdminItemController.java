@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import se.jensen.johanna.auctionsite.dto.admin.AddItemRequest;
-import se.jensen.johanna.auctionsite.dto.admin.AdminItemDTO;
+import se.jensen.johanna.auctionsite.dto.admin.AdminItemResponse;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateItemRequest;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.service.ItemService;
@@ -21,8 +21,13 @@ import java.util.List;
 public class AdminItemController {
     private final ItemService itemService;
 
+    @PostMapping
+    public ResponseEntity<AdminItemResponse> addItem(@RequestBody @Valid AddItemRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addItem(request));
+    }
+
     @GetMapping
-    public ResponseEntity<List<AdminItemDTO>> getAllItems(
+    public ResponseEntity<List<AdminItemResponse>> getAllItems(
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) Category.SubCategory subCategory
     ) {
@@ -30,21 +35,16 @@ public class AdminItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ResponseEntity<AdminItemDTO> getItem(@PathVariable Long itemId) {
+    public ResponseEntity<AdminItemResponse> getItem(@PathVariable Long itemId) {
         return ResponseEntity.ok(itemService.findItem(itemId));
     }
 
-    @PostMapping
-    public ResponseEntity<AdminItemDTO> addItem(@RequestBody @Valid AddItemRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addItem(request));
-    }
-
     @PutMapping("/{itemId}")
-    public ResponseEntity<AdminItemDTO> editItem(
+    public ResponseEntity<AdminItemResponse> editItem(
             @PathVariable Long itemId,
             @RequestBody @Valid UpdateItemRequest request
     ) {
-        return ResponseEntity.ok(itemService.updateItem(request, itemId));
+        return ResponseEntity.ok(itemService.updateItem(itemId, request));
     }
 
     @DeleteMapping("/{itemId}")

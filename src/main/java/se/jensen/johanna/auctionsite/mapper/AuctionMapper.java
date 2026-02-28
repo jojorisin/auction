@@ -3,11 +3,11 @@ package se.jensen.johanna.auctionsite.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import se.jensen.johanna.auctionsite.dto.AuctionDTO;
-import se.jensen.johanna.auctionsite.dto.AuctionsListDTO;
+import se.jensen.johanna.auctionsite.dto.AuctionResponse;
+import se.jensen.johanna.auctionsite.dto.AuctionsListResponse;
 import se.jensen.johanna.auctionsite.dto.admin.AdminAuctionResponse;
 import se.jensen.johanna.auctionsite.dto.admin.ManualLaunchResponse;
-import se.jensen.johanna.auctionsite.dto.my.MyWonAuctionDTO;
+import se.jensen.johanna.auctionsite.dto.my.WonAuctionResponse;
 import se.jensen.johanna.auctionsite.model.Auction;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -19,21 +19,21 @@ public interface AuctionMapper {
     @Mapping(target = "title", source = "auction.item.title")
     @Mapping(target = "valuation", source = "auction.item.valuation")
     @Mapping(target = "highestBid", expression = "java(auction.leadingAmount())")
-    AuctionsListDTO toAuctionsList(Auction auction);
+    AuctionsListResponse toAuctionsList(Auction auction);
 
-    @Mapping(target = "itemDTO", source = "auction.item")
-    AuctionDTO toAuctionDTO(Auction auction);
+    @Mapping(target = "itemResponse", source = "auction.item")
+    AuctionResponse toAuctionResponse(Auction auction);
 
     @Mapping(target = "auctionId", source = "id")
     @Mapping(target = "highestBid", expression = "java(auction.leadingAmount())")
     @Mapping(target = "title", source = "auction.item.title")
-    MyWonAuctionDTO toMyWonAuction(Auction auction);
+    WonAuctionResponse toMyWonAuction(Auction auction);
 
     @Mapping(target = "auctionId", source = "auction.id")
-    @Mapping(target = "adminItemDTO", source = "auction.item")
+    @Mapping(target = "adminItemResponse", source = "auction.item")
     ManualLaunchResponse toManualLaunchResponse(Auction auction);
 
     @Mapping(target = "auctionId", source = "id")
-    @Mapping(target = "adminItemDTO", source = "item")
-    AdminAuctionResponse toAdminRecord(Auction auction);
+    @Mapping(target = "adminItemResponse", source = "item")
+    AdminAuctionResponse toAdminAuctionResponse(Auction auction);
 }

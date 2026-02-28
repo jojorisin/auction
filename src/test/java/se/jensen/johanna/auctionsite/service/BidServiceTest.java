@@ -1,6 +1,5 @@
 package se.jensen.johanna.auctionsite.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,13 +13,10 @@ import se.jensen.johanna.auctionsite.dto.enums.BidStatus;
 import se.jensen.johanna.auctionsite.event.BidPlacedEvent;
 import se.jensen.johanna.auctionsite.model.Auction;
 import se.jensen.johanna.auctionsite.model.Bid;
-import se.jensen.johanna.auctionsite.model.Item;
-import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.BidRepository;
 import se.jensen.johanna.auctionsite.repository.UserRepository;
-import se.jensen.johanna.auctionsite.service.enums.BidTier;
-import se.jensen.johanna.auctionsite.util.TestDataFactory;
+import se.jensen.johanna.auctionsite.util.AuctionTestBase;
 
 import java.util.Optional;
 
@@ -29,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BidServiceTest {
+class BidServiceTest extends AuctionTestBase {
     @InjectMocks
     private BidService bidService;
     @Mock
@@ -40,35 +36,6 @@ class BidServiceTest {
     private BidRepository bidRepository;
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
-
-    private Auction auction;
-    private User currentBidder;
-    private User competingBidder;
-
-    private static final Long BIDDER_ID = 1L;
-    private static final Long OTHER_BIDDER_ID = 2L;
-    private static final Long ITEM_ID = 3L;
-    private static final Long AUCTION_ID = 4L;
-
-    int increment;
-    int normalBidAmount;
-    int maxBidAmount;
-    int acceptedAmount;
-    int overAcceptedAmount;
-
-    @BeforeEach
-    void setUp() {
-        // the increment is 500 for a 10000 valuation
-        Item item = TestDataFactory.createItem(ITEM_ID, 10000);
-        auction = TestDataFactory.createActiveAuction(AUCTION_ID, item, 3000);
-        currentBidder = TestDataFactory.createUser(BIDDER_ID);
-        competingBidder = TestDataFactory.createUser(OTHER_BIDDER_ID);
-        increment = BidTier.getBidIncrement(item.getValuation());
-        normalBidAmount = increment;
-        maxBidAmount = increment * 3;
-        acceptedAmount = auction.getAcceptedPrice();
-        overAcceptedAmount = acceptedAmount + increment;
-    }
 
     @Test
     @DisplayName("Should place and save normal bid and return BELOW ACCEPTED LEADING")

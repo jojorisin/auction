@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * Contains details about the item at auction.
- * Primarily used in AuctionDTOs
+ * Primarily used in AuctionResponses
  *
  * @param valuation
  * @param category
@@ -15,7 +15,7 @@ import java.util.List;
  * @param description
  * @param imageUrls
  */
-public record ItemDTO(
+public record ItemResponse(
         Integer valuation,
         Category category,
         Category.SubCategory subCategory,

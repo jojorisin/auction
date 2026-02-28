@@ -1,4 +1,4 @@
-package se.jensen.johanna.auctionsite.dto;
+package se.jensen.johanna.auctionsite.dto.auth;
 
 import se.jensen.johanna.auctionsite.model.enums.Role;
 

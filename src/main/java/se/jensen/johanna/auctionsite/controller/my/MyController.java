@@ -28,8 +28,22 @@ public class MyController {
     private final JwtUtils jwtUtils;
 
     @GetMapping
-    public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok().body(userService.getAuthenticatedUser(jwtUtils.extractUserId(jwt)));
+    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(userService.getAuthenticatedUser(jwtUtils.extractUserId(jwt)));
+    }
+
+    @GetMapping("/bidding")
+    public ResponseEntity<List<MyActiveBids>> getMyActiveBids(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return ResponseEntity.ok(bidService.getMyActiveBids(jwtUtils.extractUserId(jwt)));
+    }
+
+    @GetMapping("/won")
+    public ResponseEntity<List<WonAuctionResponse>> getMyWonAuctions(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return ResponseEntity.ok(auctionService.getMyWonAuctions(jwtUtils.extractUserId(jwt)));
     }
 
     @PutMapping("/address")
@@ -37,11 +51,11 @@ public class MyController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid AddressRequest request
     ) {
-        return ResponseEntity.ok().body(userService.updateAddress(jwtUtils.extractUserId(jwt), request));
+        return ResponseEntity.ok(userService.updateAddress(jwtUtils.extractUserId(jwt), request));
     }
 
     @PutMapping("/contact")
-    public ResponseEntity<UserDTO> updateContactInfo(
+    public ResponseEntity<UserResponse> updateContactInfo(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody @Valid ContactInfoRequest request
     ) {
@@ -51,25 +65,8 @@ public class MyController {
     @PutMapping("/password")
     public ResponseEntity<ResponseMessage> updatePassword(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody @Valid UpdatePasswordDTO passwordDTO
+            @RequestBody @Valid UpdatePasswordRequest request
     ) {
-        ResponseMessage message = userService.updatePassword(passwordDTO, jwtUtils.extractUserId(jwt));
-        return ResponseEntity.ok(message);
-    }
-
-    @GetMapping("/bidding")
-    public ResponseEntity<List<MyActiveBids>> getActiveBids(
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        List<MyActiveBids> myActiveBids = bidService.getMyActiveBids(jwtUtils.extractUserId(jwt));
-        return ResponseEntity.ok(myActiveBids);
-    }
-
-    @GetMapping("/won")
-    public ResponseEntity<List<MyWonAuctionDTO>> getMyWonAuctions(
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        List<MyWonAuctionDTO> wonAuctions = auctionService.getMyWonAuctions(jwtUtils.extractUserId(jwt));
-        return ResponseEntity.ok(wonAuctions);
+        return ResponseEntity.ok(userService.updatePassword(jwtUtils.extractUserId(jwt), request));
     }
 }

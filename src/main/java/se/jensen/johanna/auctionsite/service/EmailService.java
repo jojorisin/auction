@@ -9,7 +9,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import se.jensen.johanna.auctionsite.dto.EmailTypeDTO;
+import se.jensen.johanna.auctionsite.dto.EmailRequest;
 
 @Slf4j
 @Service
@@ -18,28 +18,68 @@ public class EmailService {
     private final JavaMailSender mailSender;
 
     @Async
-    public void sendEmail(EmailTypeDTO emailDTO) {
+    public void sendEmail(EmailRequest request) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            switch (emailDTO.status()) {
-                case WON:
-                    helper.setSubject("Congratulations! You won");
-                    helper.setText("Congratulations! You won auction " + emailDTO.title() + " " + emailDTO.imageUrl() + ". Find payment and transport options under My Wins");
-                    break;
-                case OUTBID:
-                    helper.setSubject("You were outbid.");
-                    helper.setText("You were outbid on auction " + emailDTO.title() + " " + emailDTO.imageUrl());
-                    break;
-                default:
-                    log.warn("Unknown email status: {}", emailDTO.status());
-                    break;
-            }
-
-            helper.setTo(emailDTO.email());
+            setEmailContent(helper, request);
+            helper.setTo(request.email());
             mailSender.send(message);
         } catch (MessagingException | MailException e) {
-            log.error("Failed to send email to {}: {}", emailDTO.email(), e.getMessage());
+            log.error("Failed to send email to {}: {}", request.email(), e.getMessage());
+        }
+    }
+
+    public void setEmailContent(MimeMessageHelper helper, EmailRequest request) throws MessagingException {
+        switch (request.type()) {
+            case WINNER:
+                helper.setSubject(String.format("Congratulations! You won %s.", request.title()));
+                helper.setText(
+                        String.format(
+                                "Congratulations! You won auction %s. %n %s Find payment and transport options under My Wins",
+                                request.title(),
+                                request.imageUrl()
+                        )
+                );
+                break;
+            case OUTBID:
+                helper.setSubject(String.format("You were outbid on %s.", request.title()));
+                helper.setText(
+                        String.format(
+                                "You were outbid on auction %s. Place a higher bid to compete. %n %s",
+                                request.title(),
+                                request.imageUrl()
+                        )
+                );
+                break;
+            case LOST:
+                helper.setSubject(String.format("You lost %s.", request.title()));
+                helper.setText(String.format("You lost auction %s. %n %s", request.title(), request.imageUrl()));
+                break;
+            case AUCTION_REMINDER:
+                helper.setSubject(String.format("Auction %s ends soon.", request.title()));
+                helper.setText(
+                        String.format(
+                                "Auction %s ends soon, dont miss out! %n %s",
+                                request.title(),
+                                request.imageUrl()
+                        )
+                );
+                break;
+            case ITEM_SOLD:
+                helper.setSubject(String.format("Item %s sold.", request.title()));
+                helper.setText(String.format("Item %s has sold. %n %s", request.title(), request.imageUrl()));
+                break;
+            case ITEM_NOT_SOLD:
+                helper.setSubject(String.format("Item %s not sold.", request.title()));
+                helper.setText(String.format(
+                        "Item %s has unfortunately not sold. %n %s",
+                        request.title(),
+                        request.imageUrl()
+                ));
+                break;
+            default:
+                log.warn("Unknown email type: {}", request.type());
         }
     }
 }

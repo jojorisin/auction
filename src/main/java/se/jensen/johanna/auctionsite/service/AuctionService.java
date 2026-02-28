@@ -1,22 +1,23 @@
 package se.jensen.johanna.auctionsite.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import se.jensen.johanna.auctionsite.dto.AuctionDTO;
-import se.jensen.johanna.auctionsite.dto.AuctionsListDTO;
+import org.springframework.transaction.annotation.Transactional;
+import se.jensen.johanna.auctionsite.dto.AuctionResponse;
+import se.jensen.johanna.auctionsite.dto.AuctionsListResponse;
 import se.jensen.johanna.auctionsite.dto.admin.*;
-import se.jensen.johanna.auctionsite.dto.my.MyWonAuctionDTO;
+import se.jensen.johanna.auctionsite.dto.my.WonAuctionResponse;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
 import se.jensen.johanna.auctionsite.mapper.AuctionMapper;
 import se.jensen.johanna.auctionsite.model.Auction;
 import se.jensen.johanna.auctionsite.model.Item;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.model.enums.Category;
+import se.jensen.johanna.auctionsite.model.enums.ItemStatus;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.ItemRepository;
 
@@ -28,7 +29,6 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuctionService {
     private final AuctionRepository auctionRepository;
     private final AuctionMapper auctionMapper;
@@ -41,8 +41,13 @@ public class AuctionService {
      *
      * @return a list of {@link AdminAuctionResponse} containing all auctions.
      */
-    public List<AdminAuctionResponse> findAllAuctions() {
-        return auctionRepository.findAll().stream().map(auctionMapper::toAdminRecord).toList();
+    public Page<AdminAuctionResponse> findAllAuctions(
+            Category category,
+            Category.SubCategory subCategory,
+            Pageable pageable
+    ) {
+        return auctionRepository.findAllAuctions(category, subCategory, pageable)
+                                .map(auctionMapper::toAdminAuctionResponse);
     }
 
     /**
@@ -54,31 +59,32 @@ public class AuctionService {
      */
     public AdminAuctionResponse getAuction(Long auctionId) {
         Auction auction = getAuctionOrThrow(auctionId);
-        return auctionMapper.toAdminRecord(auction);
+        return auctionMapper.toAdminAuctionResponse(auction);
     }
 
     /**
      * Creates and saves a new auction linked to a specific item.
      *
-     * @param dto the data transfer object containing auction details and item ID.
+     * @param request the data transfer object containing auction details and item ID.
      * @return the {@link AdminAuctionResponse} of the newly created auction.
      * @throws NotFoundException if the item associated with the auction does not exist.
      */
-    public AdminAuctionResponse createAuctionForItem(CreateAuctionRequest dto) {
-        Item item = itemRepository.findById(dto.itemId()).orElseThrow(() ->
-                new NotFoundException(String.format("Item with id %d not found", dto.itemId()))
+    @Transactional
+    public AdminAuctionResponse createAuctionForItem(CreateAuctionRequest request) {
+        Item item = itemRepository.findById(request.itemId()).orElseThrow(() ->
+                new NotFoundException(String.format("Item with id %d not found", request.itemId()))
         );
 
-        if (auctionRepository.existsByItemId(item.getId())) {
+        if (item.getStatus() != ItemStatus.INACTIVE) {
             throw new IllegalStateException(String.format(
-                    "Auction already exists for item with id %d",
+                    "Auction already exists or is planned for item with id %d",
                     item.getId()
             ));
         }
-        Auction auction = Auction.prepareAuction(item, dto.acceptedPrice());
+        Auction auction = Auction.prepareAuction(item, request.acceptedPrice());
         auctionRepository.save(auction);
         log.info("Auction created for item {}", item.getId());
-        return auctionMapper.toAdminRecord(auction);
+        return auctionMapper.toAdminAuctionResponse(auction);
     }
 
     /**
@@ -87,6 +93,7 @@ public class AuctionService {
      * @param request {@link LaunchBatchRequest} request containing size, start and end time. Returns default value if null
      * @return {@link LaunchBatchResponse} returns nr of successful and failed launches and a list with IDs of failed auctions
      */
+    @Transactional
     public LaunchBatchResponse launchBatch(LaunchBatchRequest request) {
         // use getters to return default values if null
         Instant startTime = request.getStartTime();
@@ -109,11 +116,11 @@ public class AuctionService {
                 log.warn("Failed to launch: Auction {} is missing required fields", a.getId());
                 continue;
             }
-            if (auctionRepository.existsByItemIdAndStatusActiveOrPlanned(a.getItem().getId())) {
+            if (a.getItem().getStatus() != ItemStatus.INACTIVE) {
                 failed.add(new FailedToLaunch(a.getId(), "Auction already exists for item"));
                 failedLaunches++;
                 log.warn(
-                        "Failed to launch: Item {} already has an active or planed auction", a.getItem().getId()
+                        "Failed to launch: Item {} already has an active or planned auction", a.getItem().getId()
                 );
                 continue;
             }
@@ -134,16 +141,17 @@ public class AuctionService {
      * @param request   containing start and endtime.
      * @return {@link ManualLaunchResponse} containing detailed info about the auction
      */
+    @Transactional
     public ManualLaunchResponse manualLaunch(Long auctionId, ManualLaunchRequest request) {
         // user getters to return default values if null
         Instant startTime = request.getStartTime();
         Instant endTime = request.getEndTime();
 
         Auction auction = getAuctionOrThrow(auctionId);
-        if (auctionRepository.existsByItemIdAndStatusActiveOrPlanned(auction.getItem().getId())) {
+        if (auction.getItem().getStatus() != ItemStatus.INACTIVE) {
             throw new IllegalStateException(String.format(
-                    "Auction with id %d is already launched or planned",
-                    auction.getId()
+                    "Auction already exists for item with id %d",
+                    auction.getItem().getId()
             ));
         }
         auction.launchAuction(startTime, endTime);
@@ -167,6 +175,7 @@ public class AuctionService {
      * @return the {@link AdminAuctionResponse} of the updated auction.
      * @throws NotFoundException if no auction is found with the given ID.
      */
+    @Transactional
     public AdminAuctionResponse updateAuction(Long auctionId, UpdateAuctionRequest request) {
         Auction auction = getAuctionOrThrow(auctionId);
         if (auction.getStatus() == AuctionStatus.ACTIVE) {
@@ -187,7 +196,7 @@ public class AuctionService {
         }
         auctionRepository.save(auction);
         log.info("Auction {} updated.", auction.getId());
-        return auctionMapper.toAdminRecord(auction);
+        return auctionMapper.toAdminAuctionResponse(auction);
     }
 
     /**
@@ -196,6 +205,7 @@ public class AuctionService {
      * @param auctionId the ID of the auction to delete.
      * @throws NotFoundException if no auction is found with the given ID.
      */
+    @Transactional
     public void deleteAuction(Long auctionId) {
         Auction auction = getAuctionOrThrow(auctionId);
         auctionRepository.delete(auction);
@@ -208,12 +218,12 @@ public class AuctionService {
      * Retrieves an active auction with public details, including item info and bid history.
      *
      * @param auctionId the ID of the auction to retrieve.
-     * @return the {@link AuctionDTO} containing auction, item, and bid information.
+     * @return the {@link AuctionResponse} containing auction, item, and bid information.
      * @throws NotFoundException if no auction is found with the given ID.
      */
-    public AuctionDTO getActiveAuction(Long auctionId) {
+    public AuctionResponse getActiveAuction(Long auctionId) {
         Auction auction = getAuctionOrThrow(auctionId);
-        return auctionMapper.toAuctionDTO(auction);
+        return auctionMapper.toAuctionResponse(auction);
     }
 
     /**
@@ -222,9 +232,9 @@ public class AuctionService {
      *
      * @param category    the category to filter by (optional).
      * @param subCategory the subcategory to filter by (optional).
-     * @return a list of {@link AuctionsListDTO} representing the active auctions.
+     * @return a list of {@link AuctionsListResponse} representing the active auctions.
      */
-    public Page<AuctionsListDTO> getAllActiveAuctions(
+    public Page<AuctionsListResponse> getAllActiveAuctions(
             Category category,
             Category.SubCategory subCategory,
             Pageable pageable
@@ -238,7 +248,7 @@ public class AuctionService {
      * @param userId ID of user to fetch won auctions for
      * @return List of won auctions
      */
-    public List<MyWonAuctionDTO> getMyWonAuctions(Long userId) {
+    public List<WonAuctionResponse> getMyWonAuctions(Long userId) {
         return auctionRepository.findWonAuctionsByUserId(userId).stream().map(auctionMapper::toMyWonAuction).toList();
     }
 

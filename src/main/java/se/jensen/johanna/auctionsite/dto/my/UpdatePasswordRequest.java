@@ -3,7 +3,7 @@ package se.jensen.johanna.auctionsite.dto.my;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record UpdatePasswordDTO(
+public record UpdatePasswordRequest(
         @NotBlank(message = "Write your new password")
         @Size(min = 8, message = "Must be minimum 8 characters")
         String newPassword,

@@ -9,6 +9,8 @@ import se.jensen.johanna.auctionsite.model.enums.Role;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestDataFactory {
     public static User createUser(Long id) {
@@ -21,6 +23,8 @@ public class TestDataFactory {
     }
 
     public static Item createItem(Long id, int valuation) {
+        List<String> imageUrls = new ArrayList<>();
+        imageUrls.add("imageUrl");
         return Item.builder()
                    .id(id)
                    .seller(createUser(50L))
@@ -29,6 +33,7 @@ public class TestDataFactory {
                    .category(Category.ART)
                    .subCategory(Category.SubCategory.PAINTINGS)
                    .valuation(valuation)
+                   .imageUrls(imageUrls)
                    .build();
     }
 
