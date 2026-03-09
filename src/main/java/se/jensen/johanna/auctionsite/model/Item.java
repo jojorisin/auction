@@ -1,16 +1,25 @@
 package se.jensen.johanna.auctionsite.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
+import se.jensen.johanna.auctionsite.exception.DomainArgumentException;
+import se.jensen.johanna.auctionsite.exception.DomainStateException;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.model.enums.ItemStatus;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Represents the item to auction
@@ -23,120 +32,148 @@ import java.util.List;
 @Getter
 public class Item extends BaseEntity {
 
-    @ManyToOne
-    @JoinColumn(name = "seller_id", nullable = false)
-    private User seller;
+  @ManyToOne
+  @JoinColumn(name = "seller_id", nullable = false)
+  private User seller;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Category category;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private Category category;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Category.SubCategory subCategory;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private Category.SubCategory subCategory;
 
-    @Column(nullable = false)
-    private String title;
+  @Column(nullable = false)
+  private String title;
 
-    @Column(nullable = false)
-    private String description;
+  @Column(nullable = false)
+  private String description;
 
-    @Builder.Default
-    private List<String> imageUrls = new ArrayList<>();
+  @Builder.Default
+  private List<String> imageUrls = new ArrayList<>();
 
-    @Column(nullable = false)
-    private Integer valuation;
+  @Column(nullable = false)
+  private Integer valuation;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private ItemStatus status = ItemStatus.INACTIVE;
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  @Builder.Default
+  private ItemStatus status = ItemStatus.AVAILABLE;
 
-    public static Item create(
-            User seller,
-            Category category,
-            Category.SubCategory subCategory,
-            String title,
-            String description,
-            Integer valuation,
-            List<String> imageUrls
-    ) {
-        if (category == null) throw new IllegalArgumentException("Category is required");
-        if (subCategory == null) throw new IllegalArgumentException("SubCategory is required");
-        if (!checkValidSub(category, subCategory))
-            throw new IllegalArgumentException("Subcategory must belong to the same category as the item.");
-        if (seller == null) throw new IllegalArgumentException("Seller is required");
-        if (title == null || title.isBlank()) throw new IllegalArgumentException("Title is required");
-        if (description == null || description.isBlank()) throw new IllegalArgumentException("Description is required");
-        if (valuation == null || valuation <= 0) throw new IllegalArgumentException("Valuation must be greater than 0");
+  public static Item create(
+      @NonNull
+      User seller,
+      @NonNull
+      Category category,
+      @NonNull
+      Category.SubCategory subCategory,
+      @NonNull
+      String title,
+      @NonNull
+      String description,
+      @NonNull
+      Integer valuation,
+      List<String> imageUrls
+  ) {
 
-        return Item.builder()
-                   .seller(seller)
-                   .category(category)
-                   .subCategory(subCategory)
-                   .title(title)
-                   .description(description)
-                   .valuation(valuation)
-                   .imageUrls(imageUrls != null ? imageUrls : new ArrayList<>())
-                   .build();
+    if (!checkValidSub(category, subCategory)) {
+      throw new DomainArgumentException(
+          "Subcategory must belong to the same category as the item.");
+    }
+    if (title.isBlank()) {
+      throw new DomainArgumentException("Title is required");
+    }
+    if (description.isBlank()) {
+      throw new DomainArgumentException("Description is required");
+    }
+    if (valuation <= 0) {
+      throw new DomainArgumentException("Valuation must be greater than 0");
     }
 
-    public void updateCategories(Category category, Category.SubCategory subCategory) {
-        if (category == null || subCategory == null) {
-            throw new IllegalArgumentException("Category and Subcategory is required.");
-        }
-        if (!subCategory.getCategory().equals(category)) {
-            throw new IllegalArgumentException("Subcategory must belong to the same category as the item.");
-        }
-        this.category = category;
-        this.subCategory = subCategory;
-    }
+    return Item.builder()
+        .seller(seller)
+        .category(category)
+        .subCategory(subCategory)
+        .title(title)
+        .status(ItemStatus.AVAILABLE)
+        .description(description)
+        .valuation(valuation)
+        .imageUrls(imageUrls != null ? imageUrls : new ArrayList<>())
+        .build();
+  }
 
-    public void updateTitle(String title) {
-        if (title == null || title.isBlank()) throw new IllegalArgumentException("Title is required");
-        this.title = title;
+  public void updateCategories(@NonNull Category category,
+      @NonNull Category.SubCategory subCategory) {
+    if (!subCategory.getCategory().equals(category)) {
+      throw new DomainArgumentException(
+          "Subcategory must belong to the same category as the item.");
     }
+    this.category = category;
+    this.subCategory = subCategory;
+  }
 
-    public void updateDescription(String description) {
-        if (description == null || description.isBlank()) throw new IllegalArgumentException("Description is required");
-        this.description = description;
+  public void updateTitle(@NonNull String title) {
+    if (title.isBlank()) {
+      throw new DomainArgumentException("Title is required");
     }
+    this.title = title;
+  }
 
-    public void updateValuation(Integer valuation) {
-        if (valuation == null || valuation <= 0) throw new IllegalArgumentException("Valuation must be greater than 0");
-        this.valuation = valuation;
+  public void updateDescription(@NonNull String description) {
+    if (description.isBlank()) {
+      throw new DomainArgumentException("Description is required");
     }
+    this.description = description;
+  }
 
-    public String getPrimaryImageUrl() {
-        if (imageUrls.isEmpty()) return null;
-        return imageUrls.get(0);
+  public void updateValuation(@NonNull Integer valuation) {
+    if (status == ItemStatus.ACTIVE) {
+      throw new DomainStateException("Item is active at auction, valuation cannot be changed");
     }
+    if (valuation <= 0) {
+      throw new DomainArgumentException("Valuation must be greater than 0");
+    }
+    this.valuation = valuation;
+  }
 
-    public void addImage(String imageUrl) {
-        if (imageUrl == null || imageUrl.isBlank()) throw new IllegalArgumentException("Image url is required");
-        imageUrls.add(imageUrl);
+  public String getPrimaryImageUrl() {
+    if (imageUrls.isEmpty()) {
+      return null;
     }
+    return imageUrls.get(0);
+  }
 
-    public void updateImageUrls(List<String> imageUrls) {
-        if (imageUrls == null || imageUrls.isEmpty()) throw new IllegalArgumentException("ImageUrls is required");
-        this.imageUrls = imageUrls;
+  public void addImage(@NonNull String imageUrl) {
+    if (imageUrl.isBlank()) {
+      throw new DomainArgumentException("Image is required");
     }
+    imageUrls.add(imageUrl);
+  }
 
-    public boolean isReadyForAuction() {
-        return seller != null
-                && category != null
-                && checkValidSub(category, subCategory)
-                && (title != null && !title.isBlank())
-                && (description != null && !description.isBlank())
-                && (valuation != null && valuation > 0)
-                && (imageUrls != null && !imageUrls.isEmpty());
+  public void addImageUrls(@NonNull List<String> imageUrls) {
+    if (imageUrls.isEmpty()) {
+      throw new DomainArgumentException("Images are required");
     }
+    this.imageUrls.addAll(imageUrls);
+  }
 
-    private static boolean checkValidSub(Category category, Category.SubCategory subCategory) {
-        return subCategory != null && subCategory.getCategory().equals(category);
-    }
+  public boolean isReadyForAuction() {
+    return seller != null
+        && category != null
+        && checkValidSub(category, subCategory)
+        && (title != null && !title.isBlank())
+        && (description != null && !description.isBlank())
+        && (valuation != null && valuation > 0)
+        && (imageUrls != null && !imageUrls.isEmpty())
+        && status.equals(ItemStatus.AVAILABLE);
+  }
 
-    public void updateStatus(ItemStatus status) {
-        this.status = status;
-    }
+  private static boolean checkValidSub(Category category, Category.SubCategory subCategory) {
+    return subCategory != null && subCategory.getCategory().equals(category);
+  }
+
+  public void updateStatus(ItemStatus status) {
+    this.status = status;
+  }
 }

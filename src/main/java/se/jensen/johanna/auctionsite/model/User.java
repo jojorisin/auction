@@ -1,12 +1,19 @@
 package se.jensen.johanna.auctionsite.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import se.jensen.johanna.auctionsite.exception.DomainArgumentException;
 import se.jensen.johanna.auctionsite.exception.InvalidPhoneNumberException;
 import se.jensen.johanna.auctionsite.model.enums.Role;
 
@@ -18,54 +25,64 @@ import se.jensen.johanna.auctionsite.model.enums.Role;
 @Getter
 public class User extends BaseEntity {
 
-    @Column(nullable = false, unique = true, updatable = false)
-    @NotNull
-    private String email;
+  @Column(nullable = false, unique = true, updatable = false)
+  @NotNull
+  private String email;
 
-    @Column(nullable = false)
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private Role role;
+  @Column(nullable = false)
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  private Role role;
 
-    @Column(nullable = false)
-    @NotNull
-    private String hashedPassword;
+  @Column(nullable = false)
+  @NotNull
+  private String hashedPassword;
 
-    //create value object money?
-    private int payments;
+  //create value object money?
+  private int payments;
 
-    private String phoneNr;
+  private String phoneNr;
 
-    @Embedded
-    @Valid
-    private Address address;
+  @Embedded
+  @Valid
+  private Address address;
 
-    public static User register(String email, String hashedPassword, Role role) {
-        if (email == null || email.isBlank()) throw new IllegalArgumentException("Email required.");
-        if (hashedPassword == null || hashedPassword.isBlank())
-            throw new IllegalArgumentException("Password required.");
-        if (role == null) throw new IllegalArgumentException("Role required.");
-
-        return User.builder().email(email).hashedPassword(hashedPassword).role(role).build();
+  public static User register(String email, String hashedPassword, Role role) {
+    if (email == null || email.isBlank()) {
+      throw new DomainArgumentException("Email required.");
+    }
+    if (hashedPassword == null || hashedPassword.isBlank()) {
+      throw new DomainArgumentException("Password required.");
+    }
+    if (role == null) {
+      throw new DomainArgumentException("Role required.");
     }
 
-    public void changeAddress(Address address) {
-        if (address == null) throw new IllegalArgumentException("Address is required");
-        this.address = address;
-    }
+    return User.builder().email(email).hashedPassword(hashedPassword).role(role).build();
+  }
 
-    public void changePassword(String hashedPassword) {
-        if (hashedPassword == null || hashedPassword.isBlank())
-            throw new IllegalArgumentException("Password is required");
-        this.hashedPassword = hashedPassword;
+  public void changeAddress(Address address) {
+    if (address == null) {
+      throw new DomainArgumentException("Address is required");
     }
+    this.address = address;
+  }
 
-    public void changeContactInfo(String rawPhoneNr) {
-        if (rawPhoneNr == null || rawPhoneNr.isBlank()) throw new IllegalArgumentException("Phone number is required");
-        String cleanPhoneNr = rawPhoneNr.trim().replaceAll("[^0-9+]", "");
-        if (cleanPhoneNr.isEmpty()) {
-            throw new InvalidPhoneNumberException("Please enter a valid phone number.");
-        }
-        this.phoneNr = cleanPhoneNr;
+  public void changePassword(String hashedPassword) {
+    if (hashedPassword == null || hashedPassword.isBlank()) {
+      throw new DomainArgumentException("Password is required");
     }
+    this.hashedPassword = hashedPassword;
+  }
+
+  public void changeContactInfo(String rawPhoneNr) {
+    if (rawPhoneNr == null || rawPhoneNr.isBlank()) {
+      throw new DomainArgumentException("Phone number is required");
+    }
+    String cleanPhoneNr = rawPhoneNr.trim().replaceAll("[^0-9+]", "");
+    if (cleanPhoneNr.isEmpty()) {
+      throw new InvalidPhoneNumberException("Please enter a valid phone number.");
+    }
+    this.phoneNr = cleanPhoneNr;
+  }
 }

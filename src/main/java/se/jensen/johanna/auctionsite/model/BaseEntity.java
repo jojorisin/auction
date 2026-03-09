@@ -1,12 +1,17 @@
 package se.jensen.johanna.auctionsite.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.time.Instant;
 
 @MappedSuperclass
 @SuperBuilder(toBuilder = true)
@@ -14,30 +19,39 @@ import java.time.Instant;
 @Getter
 public abstract class BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(updatable = false)
-    private Instant createdAt;
+  @Column(updatable = false)
+  private Instant createdAt;
 
-    private Instant updatedAt;
+  private Instant updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = Instant.now();
-    }
+  @PrePersist
+  protected void onCreate() {
+    this.createdAt = Instant.now();
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BaseEntity)) return false;
-        BaseEntity that = (BaseEntity) o;
-        return this.id != null && this.id.equals(that.id);
-    }
+  @PreUpdate
+  protected void onUpdate() {
+    this.updatedAt = Instant.now();
+  }
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+  @Override
+  public boolean equals(Object o) {
+      if (this == o) {
+          return true;
+      }
+      if (!(o instanceof BaseEntity)) {
+          return false;
+      }
+    BaseEntity that = (BaseEntity) o;
+    return this.id != null && this.id.equals(that.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }
