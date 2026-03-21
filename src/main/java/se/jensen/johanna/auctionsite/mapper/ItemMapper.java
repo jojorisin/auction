@@ -1,5 +1,6 @@
 package se.jensen.johanna.auctionsite.mapper;
 
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import se.jensen.johanna.auctionsite.dto.ItemResponse;
@@ -21,7 +22,7 @@ public interface ItemMapper {
   @Mapping(target = "sellerId", source = "seller.id")
   MyItemResponse toMyItemResponse(Item item);
 
-  default Item toItem(CreateItemRequest request, User seller) {
+  default Item toItem(CreateItemRequest request, User seller, List<String> fileNames) {
     return Item.create(
         seller,
         request.category(),
@@ -29,7 +30,7 @@ public interface ItemMapper {
         request.title(),
         request.description(),
         request.valuation(),
-        request.imageUrls()
+        fileNames
     );
   }
 }

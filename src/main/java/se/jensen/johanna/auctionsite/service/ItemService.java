@@ -29,6 +29,7 @@ public class ItemService {
   private final UserRepository userRepository;
   private final ItemMapper itemMapper;
   private final AuctionRepository auctionRepository;
+  private final FileService fileService;
 
   @Transactional(readOnly = true)
   public List<AdminItemResponse> findAllItems(Category category, Category.SubCategory subCategory) {
@@ -51,7 +52,12 @@ public class ItemService {
             "Seller with id %d not found.",
             request.sellerId()
         )));
-    Item item = itemMapper.toItem(request, seller);
+    List<String> fileNames = request.imageFiles().stream()
+        .filter(file -> !file.isEmpty())
+        .map(fileService::saveFile)
+        .toList();
+
+    Item item = itemMapper.toItem(request, seller, fileNames);
     itemRepository.save(item);
     log.info("Item {} created for seller {}", item.getId(), item.getSeller().getId());
     return itemMapper.toRecord(item);
