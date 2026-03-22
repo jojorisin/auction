@@ -16,8 +16,9 @@ import se.jensen.johanna.auctionsite.dto.AuctionsListResponse;
 import se.jensen.johanna.auctionsite.dto.admin.AdminAuctionResponse;
 import se.jensen.johanna.auctionsite.dto.admin.CreateAuctionRequest;
 import se.jensen.johanna.auctionsite.dto.admin.FailedToLaunch;
-import se.jensen.johanna.auctionsite.dto.admin.LaunchBatchResponse;
 import se.jensen.johanna.auctionsite.dto.admin.LaunchRequest;
+import se.jensen.johanna.auctionsite.dto.admin.LaunchRequestWeb;
+import se.jensen.johanna.auctionsite.dto.admin.LaunchResponse;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateAuctionRequest;
 import se.jensen.johanna.auctionsite.dto.my.WonAuctionResponse;
 import se.jensen.johanna.auctionsite.exception.DomainArgumentException;
@@ -31,6 +32,7 @@ import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.model.enums.ItemStatus;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.ItemRepository;
+import se.jensen.johanna.auctionsite.util.TimeUtils;
 
 @Slf4j
 @Service
@@ -97,14 +99,16 @@ public class AuctionService {
    *
    * @param request {@link LaunchRequest} request containing size, start and end time. Returns
    *                default value if null
-   * @return {@link LaunchBatchResponse} returns nr of successful and failed launches and a list
-   * with IDs of failed auctions
+   * @return {@link LaunchResponse} returns nr of successful and failed launches and a list with IDs
+   * of failed auctions
    */
   @Transactional
-  public LaunchBatchResponse launchBatch(LaunchRequest request) {
-    Instant startTime = request.startTime() != null ? request.startTime() : Instant.now();
+  public LaunchResponse launchBatch(LaunchRequest request) {
+    Instant startTime =
+        request.startTime() != null ? request.startTime() : Instant.now();
     Instant endTime =
-        request.endTime() != null ? request.endTime() : startTime.plus(7, ChronoUnit.DAYS);
+        request.endTime() != null ? request.endTime()
+            : startTime.plus(7, ChronoUnit.DAYS);
     int size = request.size() != null ? request.size() : 50;
     Pageable limit = PageRequest.of(0, size);
 
@@ -135,7 +139,14 @@ public class AuctionService {
     }
     auctionRepository.saveAll(auctionsToLaunch);
     log.info("Launched {} auctions, {} failed", successfulLaunches, failedLaunches);
-    return new LaunchBatchResponse(successfulLaunches, failedLaunches, failed);
+    return new LaunchResponse(successfulLaunches, failedLaunches, failed);
+  }
+
+  @Transactional
+  public LaunchResponse webLaunch(LaunchRequestWeb request) {
+    return launchBatch(new LaunchRequest(request.size(),
+        TimeUtils.toUtcInstant(request.startDate(), request.startTime()),
+        TimeUtils.toUtcInstant(request.endDate(), request.endTime())));
   }
 
 

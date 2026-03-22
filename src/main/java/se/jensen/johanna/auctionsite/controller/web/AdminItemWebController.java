@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import se.jensen.johanna.auctionsite.dto.admin.AdminItemResponse;
 import se.jensen.johanna.auctionsite.dto.admin.CreateItemRequest;
+import se.jensen.johanna.auctionsite.dto.admin.UpdateItemRequest;
 import se.jensen.johanna.auctionsite.service.ItemService;
 
 @Controller
@@ -47,6 +48,28 @@ public class AdminItemWebController {
     AdminItemResponse response = itemService.findItem(itemId);
     model.addAttribute("item", response);
     return "admin-item-details";
+  }
+
+  @GetMapping("/{itemId}/edit")
+  public String showEditForm(@PathVariable Long itemId, Model model) {
+    AdminItemResponse item = itemService.findItem(itemId);
+    model.addAttribute("updateItemRequest",
+        new UpdateItemRequest(item.category(), item.subCategory(), item.title(), item.description(),
+            item.valuation(), item.imageUrls(), null));
+    model.addAttribute("itemId", itemId);
+    return "admin-edit-item";
+  }
+
+  @PostMapping("/{itemId}/update")
+  public String updateItem(@PathVariable Long itemId,
+      @Valid @ModelAttribute("updateItemRequest") UpdateItemRequest request,
+      BindingResult bindingResult, Model model) {
+    if (bindingResult.hasErrors()) {
+      model.addAttribute("itemId", itemId);
+      return "admin-edit-item";
+    }
+    itemService.updateItem(itemId, request);
+    return "redirect:/web/admin/items/" + itemId;
   }
 
 }

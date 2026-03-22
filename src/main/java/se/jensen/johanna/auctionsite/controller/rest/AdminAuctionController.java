@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import se.jensen.johanna.auctionsite.dto.admin.AdminAuctionResponse;
 import se.jensen.johanna.auctionsite.dto.admin.CreateAuctionRequest;
-import se.jensen.johanna.auctionsite.dto.admin.LaunchBatchResponse;
 import se.jensen.johanna.auctionsite.dto.admin.LaunchRequest;
+import se.jensen.johanna.auctionsite.dto.admin.LaunchResponse;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateAuctionRequest;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.service.AuctionScheduleService;
@@ -58,7 +58,7 @@ public class AdminAuctionController {
   }
 
   @PutMapping("/auctions/launch")
-  public ResponseEntity<LaunchBatchResponse> launchAuctions(
+  public ResponseEntity<LaunchResponse> launchAuctions(
       @RequestBody @Valid LaunchRequest request) {
     return ResponseEntity.ok(auctionService.launchBatch(request));
   }

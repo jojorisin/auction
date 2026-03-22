@@ -1,10 +1,10 @@
 package se.jensen.johanna.auctionsite.dto.admin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 import se.jensen.johanna.auctionsite.exception.DomainArgumentException;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 
@@ -24,10 +24,10 @@ public record UpdateItemRequest(
     @Positive(message = "Valuation must be a positive number.")
     Integer valuation,
 
-    List<@NotBlank String> imageUrls,
-
-    @Size(min = 1, message = "Image url is required if provided.")
-    String imageUrl) {
+    List<String> imageUrls,
+    
+    List<MultipartFile> imageFiles
+) {
 
   public UpdateItemRequest {
     if ((category != null && subCategory == null) || (category == null && subCategory != null)) {

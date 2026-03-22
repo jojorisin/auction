@@ -7,9 +7,10 @@ import java.util.List;
  * @param failed         the number of launches that failed
  * @param failedAuctions list of failed auctions with id of auction and message
  */
-public record LaunchBatchResponse(
-        int successful,
-        int failed,
-        List<FailedToLaunch> failedAuctions
+public record LaunchResponse(
+    int successful,
+    int failed,
+    List<FailedToLaunch> failedAuctions
 ) {
+
 }
