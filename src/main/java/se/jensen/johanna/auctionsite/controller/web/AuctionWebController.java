@@ -30,7 +30,7 @@ public class AuctionWebController {
     Page<AuctionsListResponse> auctions = auctionService.getAllActiveAuctions(category, subCategory,
         pageable);
     System.out.println(auctions.getSize());
-
+    model.addAttribute("categories", Category.values());
     model.addAttribute("auctions", auctions);
     model.addAttribute("selectedCategory", category);
     model.addAttribute("selectedSubCategory", subCategory);

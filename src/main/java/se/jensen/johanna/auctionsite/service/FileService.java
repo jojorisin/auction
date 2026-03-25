@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FileService {
 
-  private final String uploadDir = "uploads/";
+  private final String uploadDir = "C:/Users/johannajonsson/auction-images/";
 
   public String saveFile(MultipartFile file) {
     if (file.isEmpty()) {
@@ -19,13 +19,13 @@ public class FileService {
     }
 
     try {
+      Path root = Paths.get(uploadDir);
+      if (!Files.exists(root)) {
+        Files.createDirectories(root);
+      }
       String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-      Path path = Paths.get(uploadDir + fileName);
-
-      Files.createDirectories(path.getParent());
-
-      file.transferTo(path);
-
+      Path destination = root.resolve(fileName);
+      file.transferTo(destination);
       return fileName;
     } catch (IOException e) {
       throw new RuntimeException(String.format("Failed to save file: %s", e.getMessage()), e);
