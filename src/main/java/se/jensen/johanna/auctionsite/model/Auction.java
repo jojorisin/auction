@@ -121,7 +121,7 @@ public class Auction extends BaseEntity {
 
     if (isNewBidMaxBid) {
       newMax = MaxBid.create(this, bidder, amount);
-      this.maxBids.add(newMax);
+      maxBids.add(newMax);
       amountToPut = Math.min(Math.max(minNextBid, acceptedPrice), amount);
     }
     Bid bidToPut =

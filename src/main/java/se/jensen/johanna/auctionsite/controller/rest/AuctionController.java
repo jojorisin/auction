@@ -1,4 +1,4 @@
-package se.jensen.johanna.auctionsite.controller;
+package se.jensen.johanna.auctionsite.controller.rest;
 
 import jakarta.validation.Valid;
 import java.util.Arrays;
@@ -83,7 +83,7 @@ public class AuctionController {
   public ResponseEntity<Map<Category, List<Category.SubCategory>>> getSubCategories() {
     Map<Category, List<Category.SubCategory>> subCategories = Arrays.stream(Category.values())
         .collect(
-            Collectors.toMap(category -> category, Category.SubCategory::getAllSubsByCategory));
+            Collectors.toMap(category -> category, Category::getAllSubsByCategory));
     return ResponseEntity.ok(subCategories);
   }
 }

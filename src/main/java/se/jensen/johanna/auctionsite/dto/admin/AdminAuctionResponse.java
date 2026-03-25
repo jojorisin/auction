@@ -9,6 +9,7 @@ public record AdminAuctionResponse(
     Long buyerId,
     AuctionStatus status,
     int acceptedPrice,
+    Instant startTime,
     Instant endTime) {
 
 }

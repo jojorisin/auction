@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import se.jensen.johanna.auctionsite.dto.admin.AdminItemResponse;
 import se.jensen.johanna.auctionsite.dto.admin.CreateItemRequest;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateItemRequest;
@@ -29,6 +30,7 @@ public class ItemService {
   private final UserRepository userRepository;
   private final ItemMapper itemMapper;
   private final AuctionRepository auctionRepository;
+  private final FileService fileService;
 
   @Transactional(readOnly = true)
   public List<AdminItemResponse> findAllItems(Category category, Category.SubCategory subCategory) {
@@ -51,7 +53,9 @@ public class ItemService {
             "Seller with id %d not found.",
             request.sellerId()
         )));
-    Item item = itemMapper.toItem(request, seller);
+    List<String> fileNames = convertFileToString(request.imageFiles());
+
+    Item item = itemMapper.toItem(request, seller, fileNames);
     itemRepository.save(item);
     log.info("Item {} created for seller {}", item.getId(), item.getSeller().getId());
     return itemMapper.toRecord(item);
@@ -71,11 +75,8 @@ public class ItemService {
     if (request.description() != null) {
       item.updateDescription(request.description());
     }
-    if (request.imageUrls() != null) {
-      item.addImageUrls(request.imageUrls());
-    }
-    if (request.imageUrl() != null) {
-      item.addImage(request.imageUrl());
+    if (request.imageFiles() != null && !request.imageFiles().get(0).isEmpty()) {
+      item.addImageUrls(convertFileToString(request.imageFiles()));
     }
     if (request.valuation() != null) {
       item.updateValuation(request.valuation());
@@ -94,6 +95,13 @@ public class ItemService {
   public MyItemResponse getItemForSeller(Long userId, Long itemId) {
     return itemRepository.findByIdAndSellerId(itemId, userId).map(itemMapper::toMyItemResponse)
         .orElseThrow(() -> new NotFoundException("Item not found."));
+  }
+
+  private List<String> convertFileToString(List<MultipartFile> files) {
+    return files.stream()
+        .filter(file -> !file.isEmpty())
+        .map(fileService::saveFile)
+        .toList();
   }
 
   @Transactional

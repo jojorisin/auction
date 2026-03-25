@@ -1,4 +1,4 @@
-package se.jensen.johanna.auctionsite.controller;
+package se.jensen.johanna.auctionsite.controller.rest;
 
 import com.stripe.exception.StripeException;
 import java.nio.charset.StandardCharsets;

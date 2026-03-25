@@ -1,4 +1,4 @@
-package se.jensen.johanna.auctionsite.controller.my;
+package se.jensen.johanna.auctionsite.controller.rest;
 
 import jakarta.validation.Valid;
 import java.util.List;

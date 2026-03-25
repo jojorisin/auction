@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 
 public record CreateItemRequest(
@@ -29,7 +30,7 @@ public record CreateItemRequest(
     @Positive
     Integer valuation,
 
-    List<@NotBlank String> imageUrls
+    List<MultipartFile> imageFiles
 ) {
 
 }

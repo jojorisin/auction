@@ -144,12 +144,6 @@ public class Item extends BaseEntity {
     return imageUrls.get(0);
   }
 
-  public void addImage(@NonNull String imageUrl) {
-    if (imageUrl.isBlank()) {
-      throw new DomainArgumentException("Image is required");
-    }
-    imageUrls.add(imageUrl);
-  }
 
   public void addImageUrls(@NonNull List<String> imageUrls) {
     if (imageUrls.isEmpty()) {
