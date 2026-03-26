@@ -2,10 +2,10 @@ package se.jensen.johanna.auctionsite.service;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import se.jensen.johanna.auctionsite.dto.admin.AdminItemResponse;
 import se.jensen.johanna.auctionsite.dto.admin.CreateItemRequest;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateItemRequest;
@@ -30,7 +30,7 @@ public class ItemService {
   private final UserRepository userRepository;
   private final ItemMapper itemMapper;
   private final AuctionRepository auctionRepository;
-  private final FileService fileService;
+  private final ImageService imageService;
 
   @Transactional(readOnly = true)
   public List<AdminItemResponse> findAllItems(Category category, Category.SubCategory subCategory) {
@@ -46,6 +46,7 @@ public class ItemService {
     return itemMapper.toRecord(item);
   }
 
+  @SneakyThrows
   @Transactional
   public AdminItemResponse createItem(CreateItemRequest request) {
     User seller = userRepository.findById(request.sellerId()).orElseThrow(() ->
@@ -53,14 +54,23 @@ public class ItemService {
             "Seller with id %d not found.",
             request.sellerId()
         )));
-    List<String> fileNames = convertFileToString(request.imageFiles());
-
-    Item item = itemMapper.toItem(request, seller, fileNames);
-    itemRepository.save(item);
-    log.info("Item {} created for seller {}", item.getId(), item.getSeller().getId());
-    return itemMapper.toRecord(item);
+    List<String> imageUrls =
+        request.imageFiles() != null ? request.imageFiles().stream().map(imageService::uploadImage)
+            .toList() : List.of();
+    try {
+      Item item = itemMapper.toItem(request, seller, imageUrls);
+      itemRepository.save(item);
+      log.info("Item {} created for seller {}", item.getId(), item.getSeller().getId());
+      return itemMapper.toRecord(item);
+    } catch (Exception e) {
+      log.error("Error creating item: {}. Cleaning up {} uploaded images to S3", e.getMessage(),
+          imageUrls.size());
+      imageUrls.forEach(imageService::deleteImage);
+      throw new RuntimeException("Error creating item", e);
+    }
   }
 
+  @SneakyThrows
   @Transactional
   public AdminItemResponse updateItem(Long itemId, UpdateItemRequest request) {
     Item item = itemRepository.findById(itemId).orElseThrow(() ->
@@ -76,7 +86,9 @@ public class ItemService {
       item.updateDescription(request.description());
     }
     if (request.imageFiles() != null && !request.imageFiles().get(0).isEmpty()) {
-      item.addImageUrls(convertFileToString(request.imageFiles()));
+      List<String> imageUrls = request.imageFiles().stream().map(imageService::uploadImage)
+          .toList();
+      item.addImageUrls(imageUrls);
     }
     if (request.valuation() != null) {
       item.updateValuation(request.valuation());
@@ -97,12 +109,6 @@ public class ItemService {
         .orElseThrow(() -> new NotFoundException("Item not found."));
   }
 
-  private List<String> convertFileToString(List<MultipartFile> files) {
-    return files.stream()
-        .filter(file -> !file.isEmpty())
-        .map(fileService::saveFile)
-        .toList();
-  }
 
   @Transactional
   public void deleteItem(Long itemId) {

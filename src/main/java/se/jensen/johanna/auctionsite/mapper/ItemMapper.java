@@ -22,7 +22,7 @@ public interface ItemMapper {
   @Mapping(target = "sellerId", source = "seller.id")
   MyItemResponse toMyItemResponse(Item item);
 
-  default Item toItem(CreateItemRequest request, User seller, List<String> fileNames) {
+  default Item toItem(CreateItemRequest request, User seller, List<String> imageUrls) {
     return Item.create(
         seller,
         request.category(),
@@ -30,7 +30,7 @@ public interface ItemMapper {
         request.title(),
         request.description(),
         request.valuation(),
-        fileNames
+        imageUrls
     );
   }
 }
