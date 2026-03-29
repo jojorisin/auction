@@ -70,7 +70,8 @@ public class BidService {
     return auction.getBids().stream().map(bid -> {
       Long bidderId = bid.getBidder().getId();
       Integer alias = userIdAlias.get(bidderId);
-      return new BidHistoryResponse(bidderId, bid.getBidSum(), bid.getCreatedAt(), bid.getIsAuto(),
+      return new BidHistoryResponse(bidderId, bid.getId(), bid.getBidSum(), bid.getCreatedAt(),
+          bid.getIsAuto(),
           alias);
     }).toList();
   }

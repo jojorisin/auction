@@ -60,4 +60,24 @@ public class AuthController {
     return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString())
         .body(new RefreshResponse(result.accessToken()));
   }
+
+  /**
+   * Logs out a user by deleting their refresh token and clearing the cookie.
+   *
+   * @param refreshTokenStr the refresh token from cookie, optional
+   * @return empty Response with clear header
+   */
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout(
+      @CookieValue(name = "refreshToken", required = false) String refreshTokenStr
+
+  ) {
+    if (refreshTokenStr != null) {
+      authService.logout(refreshTokenStr);
+    }
+    ResponseCookie cleanCookie = cookieUtils.getCleanResponseCookie();
+
+    return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, cleanCookie.toString())
+        .build();
+  }
 }

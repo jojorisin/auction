@@ -18,39 +18,47 @@ import se.jensen.johanna.auctionsite.security.MyUserDetails;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    private final TokenService tokenService;
-    private final RefreshTokenService refreshTokenService;
-    private final MyUserDetailsService userDetailsService;
-    private final AuthenticationManager authenticationManager;
 
-    public LoginResult login(LoginRequest loginRequest) {
-        Authentication auth = new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password());
-        Authentication authenticatedAuth = authenticationManager.authenticate(auth);
-        MyUserDetails userDetails = (MyUserDetails) authenticatedAuth.getPrincipal();
-        String accessToken = tokenService.generateToken(userDetails);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
-        log.info("User {} logged in.", userDetails.getUsername());
-        return new LoginResult(
-                new LoginResponse(
-                        accessToken,
-                        userDetails.getUserId(),
-                        userDetails.getRole(),
-                        userDetails.getUsername()
-                ),
-                refreshToken.getToken()
-        );
-    }
+  private final TokenService tokenService;
+  private final RefreshTokenService refreshTokenService;
+  private final MyUserDetailsService userDetailsService;
+  private final AuthenticationManager authenticationManager;
 
-    public RefreshResult refresh(String oldTokenStr) {
-        RefreshToken oldToken = refreshTokenService.findByToken(oldTokenStr).map(refreshTokenService::verifyExpiration)
-                                                   .orElseThrow(() -> new RefreshTokenException(
-                                                           "RefreshToken is not in database"));
+  public LoginResult login(LoginRequest loginRequest) {
+    Authentication auth = new UsernamePasswordAuthenticationToken(loginRequest.email(),
+        loginRequest.password());
+    Authentication authenticatedAuth = authenticationManager.authenticate(auth);
+    MyUserDetails userDetails = (MyUserDetails) authenticatedAuth.getPrincipal();
+    String accessToken = tokenService.generateToken(userDetails);
+    RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
+    log.info("User {} logged in.", userDetails.getUsername());
+    return new LoginResult(
+        new LoginResponse(
+            accessToken,
+            userDetails.getUserId(),
+            userDetails.getRole(),
+            userDetails.getUsername()
+        ),
+        refreshToken.getToken()
+    );
+  }
 
-        MyUserDetails userDetails = (MyUserDetails) userDetailsService.loadUserByUsername(oldToken.getUser()
-                                                                                                  .getEmail());
-        String newAccessToken = tokenService.generateToken(userDetails);
-        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
-        log.info("User {} refreshed token.", userDetails.getUsername());
-        return new RefreshResult(newAccessToken, newRefreshToken.getToken());
-    }
+  public RefreshResult refresh(String oldTokenStr) {
+    RefreshToken oldToken = refreshTokenService.findByToken(oldTokenStr)
+        .map(refreshTokenService::verifyExpiration)
+        .orElseThrow(() -> new RefreshTokenException(
+            "RefreshToken is not in database"));
+
+    MyUserDetails userDetails = (MyUserDetails) userDetailsService.loadUserByUsername(
+        oldToken.getUser()
+            .getEmail());
+    String newAccessToken = tokenService.generateToken(userDetails);
+    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
+    log.info("User {} refreshed token.", userDetails.getUsername());
+    return new RefreshResult(newAccessToken, newRefreshToken.getToken());
+  }
+
+  public void logout(String refreshToken) {
+    refreshTokenService.deleteRefreshToken(refreshToken);
+  }
 }
