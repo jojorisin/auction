@@ -9,12 +9,13 @@ import java.time.Instant;
  * @param auctionId     ID of auction
  * @param acceptedPrice accepted price for auction
  * @param endTime       end time
- * @param minNextBid    min next bid to put
+ * @param increment     the min amount to raise
  */
 public record AuctionResponse(
-        Long auctionId,
-        int acceptedPrice,
-        Instant endTime,
-        int minNextBid,
-        ItemResponse itemResponse) {
+    Long auctionId,
+    int acceptedPrice,
+    Instant endTime,
+    int increment,
+    ItemResponse itemResponse) {
+
 }

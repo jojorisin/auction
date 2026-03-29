@@ -4,6 +4,7 @@ import java.time.Instant;
 
 public record BidHistoryResponse(
     Long userId,
+    Long bidId,
     Integer bidSum,
     Instant createdAt,
     Boolean isAuto,

@@ -9,6 +9,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,6 +26,14 @@ public class GlobalExceptionHandler {
     log.error("StripeException - {}", e.getMessage(), e);
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(new ErrorResponse(
         502, e.getClass().getSimpleName(), "Payment processing error", Instant.now()
+    ));
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException e) {
+    log.error("Bad credentials exception - {}", e.getMessage(), e);
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(
+        401, e.getClass().getSimpleName(), "Invalid credentials", Instant.now()
     ));
   }
 
