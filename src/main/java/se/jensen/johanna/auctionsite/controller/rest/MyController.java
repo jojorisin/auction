@@ -33,7 +33,7 @@ import se.jensen.johanna.auctionsite.util.JwtUtils;
 
 @PreAuthorize("isAuthenticated()")
 @RestController
-@RequestMapping("/api/my")
+@RequestMapping("/api/me")
 @CrossOrigin
 @RequiredArgsConstructor
 public class MyController {
@@ -50,7 +50,7 @@ public class MyController {
     return ResponseEntity.ok(userService.getAuthenticatedUser(jwtUtils.extractUserId(jwt)));
   }
 
-  @GetMapping("/bidding")
+  @GetMapping("/bids")
   public ResponseEntity<List<MyActiveBids>> getMyActiveBids(@AuthenticationPrincipal Jwt jwt) {
     return ResponseEntity.ok(bidService.getMyActiveBids(jwtUtils.extractUserId(jwt)));
   }

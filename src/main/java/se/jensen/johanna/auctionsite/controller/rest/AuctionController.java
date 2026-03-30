@@ -74,6 +74,15 @@ public class AuctionController {
     return ResponseEntity.ok(bidService.getBidsForActiveAuction(auctionId));
   }
 
+
+  @PreAuthorize("isAuthenticated()")
+  @GetMapping("/{auctionId}/my-max-bid")
+  public ResponseEntity<Integer> getMyMaxBidForAuction(@PathVariable Long auctionId,
+      @AuthenticationPrincipal Jwt jwt) {
+    return ResponseEntity.ok(bidService.getMyMaxBid(jwtUtils.extractUserId(jwt), auctionId));
+  }
+
+
   @GetMapping("/categories")
   public ResponseEntity<List<Category>> getCategories() {
     return ResponseEntity.ok(Arrays.asList(Category.values()));

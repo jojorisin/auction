@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -167,5 +168,14 @@ public class BidService {
     BidStatus status = result.newBidderLeads() ? auction.acceptedMet() ? BidStatus.LEADING
         : BidStatus.BELOW_ACCEPTED_LEADING : BidStatus.OUTBID;
     return new BidResponse(bidSum, status, currentHighest, result.isAuto(), maxBidSum);
+  }
+
+  /**
+   * Returns the users highest max bid for an auction
+   */
+  public Integer getMyMaxBid(Long userId, Long auctionId) {
+    Optional<Integer> optionalMaxSum = maxBidRepository.findHighestMaxBidByUserAndAuctionId(userId,
+        auctionId);
+    return optionalMaxSum.orElse(0);
   }
 }
