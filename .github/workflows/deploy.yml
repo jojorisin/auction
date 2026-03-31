@@ -13,7 +13,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # NYTT: Bygg JAR-filen först
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -39,11 +38,3 @@ jobs:
           context: .
           push: true
           tags: jojorisin/auction-site:latest
-
-      - name: Deploy to Koyeb
-        uses: koyeb/action-git-deploy@master
-        with:
-          api-token: ${{ secrets.KOYEB_TOKEN }}
-          app-name: auction-site
-          service-name: auction-site
-          docker: jojorisin/auction-site:latest
