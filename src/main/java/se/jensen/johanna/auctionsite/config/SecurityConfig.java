@@ -76,12 +76,10 @@ public class SecurityConfig {
                     "/v3/api-docs",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/web/**"
+                    "/swagger-ui.html"
                 ).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auctions/**").permitAll()
-                .requestMatchers("/api/auth/register/admin").hasRole("ADMIN")
                 .requestMatchers("/api/payments/webhook").permitAll()
                 .anyRequest().authenticated())
         .oauth2ResourceServer(oauth2 ->
