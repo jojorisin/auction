@@ -41,7 +41,7 @@ jobs:
           tags: jojorisin/auction-site:latest
 
       - name: Deploy to Koyeb
-        uses: koyeb-community/deploy-to-koyeb@v1
+        uses: koyeb/action-deploy@v2
         with:
           api-token: ${{ secrets.KOYEB_TOKEN }}
           app-name: auction-site
