@@ -41,9 +41,9 @@ jobs:
           tags: jojorisin/auction-site:latest
 
       - name: Deploy to Koyeb
-        uses: koyeb/action-deploy@v2
+        uses: koyeb/action-git-deploy@master
         with:
           api-token: ${{ secrets.KOYEB_TOKEN }}
           app-name: auction-site
           service-name: auction-site
-          docker-image: jojorisin/auction-site:latest
+          docker: jojorisin/auction-site:latest
