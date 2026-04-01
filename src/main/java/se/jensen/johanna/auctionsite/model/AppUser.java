@@ -23,7 +23,7 @@ import se.jensen.johanna.auctionsite.model.enums.Role;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class User extends BaseEntity {
+public class AppUser extends BaseEntity {
 
   @Column(nullable = false, unique = true, updatable = false)
   @NotNull
@@ -47,7 +47,7 @@ public class User extends BaseEntity {
   @Valid
   private Address address;
 
-  public static User register(String email, String hashedPassword, Role role) {
+  public static AppUser register(String email, String hashedPassword, Role role) {
     if (email == null || email.isBlank()) {
       throw new DomainArgumentException("Email required.");
     }
@@ -58,7 +58,7 @@ public class User extends BaseEntity {
       throw new DomainArgumentException("Role required.");
     }
 
-    return User.builder().email(email).hashedPassword(hashedPassword).role(role).build();
+    return AppUser.builder().email(email).hashedPassword(hashedPassword).role(role).build();
   }
 
   public void changeAddress(Address address) {

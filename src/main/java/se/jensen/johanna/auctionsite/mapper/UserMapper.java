@@ -6,7 +6,7 @@ import se.jensen.johanna.auctionsite.dto.my.AddressRequest;
 import se.jensen.johanna.auctionsite.dto.my.AddressResponse;
 import se.jensen.johanna.auctionsite.dto.my.UserResponse;
 import se.jensen.johanna.auctionsite.model.Address;
-import se.jensen.johanna.auctionsite.model.User;
+import se.jensen.johanna.auctionsite.model.AppUser;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -19,11 +19,11 @@ public interface UserMapper {
   @Mapping(target = "postalCode", source = "address.postalCode")
   @Mapping(target = "city", source = "address.city")
   @Mapping(target = "country", source = "address.country")
-  AddressResponse toAddressResponse(User user);
+  AddressResponse toAddressResponse(AppUser appUser);
 
-  @Mapping(target = "address", source = "user")
+  @Mapping(target = "address", source = "appUser")
   @Mapping(target = "userId", source = "id")
-  UserResponse toUserResponse(User user);
+  UserResponse toUserResponse(AppUser appUser);
 
   default Address toAddress(AddressRequest request) {
     return Address.create(

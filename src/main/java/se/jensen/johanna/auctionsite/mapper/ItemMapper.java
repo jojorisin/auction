@@ -7,8 +7,8 @@ import se.jensen.johanna.auctionsite.dto.ItemResponse;
 import se.jensen.johanna.auctionsite.dto.admin.AdminItemResponse;
 import se.jensen.johanna.auctionsite.dto.admin.CreateItemRequest;
 import se.jensen.johanna.auctionsite.dto.my.MyItemResponse;
+import se.jensen.johanna.auctionsite.model.AppUser;
 import se.jensen.johanna.auctionsite.model.Item;
-import se.jensen.johanna.auctionsite.model.User;
 
 @Mapper(componentModel = "spring")
 public interface ItemMapper {
@@ -22,7 +22,7 @@ public interface ItemMapper {
   @Mapping(target = "sellerId", source = "seller.id")
   MyItemResponse toMyItemResponse(Item item);
 
-  default Item toItem(CreateItemRequest request, User seller, List<String> imageUrls) {
+  default Item toItem(CreateItemRequest request, AppUser seller, List<String> imageUrls) {
     return Item.create(
         seller,
         request.category(),

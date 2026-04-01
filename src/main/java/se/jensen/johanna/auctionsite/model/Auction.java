@@ -79,7 +79,7 @@ public class Auction extends BaseEntity {
     return Optional.ofNullable(winningBid);
   }
 
-  public BiddingResult placeBid(User bidder, int amount) {
+  public BiddingResult placeBid(AppUser bidder, int amount) {
     Instant now = Instant.now();
     checkAuctionIsOpen();
     BiddingResult result;
@@ -113,7 +113,7 @@ public class Auction extends BaseEntity {
     return result;
   }
 
-  public BiddingResult handleNormalBid(User bidder, int amount) {
+  public BiddingResult handleNormalBid(AppUser bidder, int amount) {
     boolean isNewBidMaxBid = isNewBidMaxBid(amount);
     int minNextBid = minNextBid();
     int amountToPut = amount;
@@ -141,7 +141,7 @@ public class Auction extends BaseEntity {
    * @param bidder the leading bidder that is raising
    * @param amount the new max amount
    */
-  private BiddingResult handleRaisedBid(User bidder, int amount) {
+  private BiddingResult handleRaisedBid(AppUser bidder, int amount) {
     MaxBid maxBid = MaxBid.create(this, bidder, amount);
     maxBids.add(maxBid);
     boolean acceptedMet = leadingAmount() >= acceptedPrice;
@@ -160,7 +160,7 @@ public class Auction extends BaseEntity {
    * @param bidder the incoming bidder
    * @param amount incoming amount
    */
-  private BiddingResult handleHiddenMaxBid(User bidder, int amount) {
+  private BiddingResult handleHiddenMaxBid(AppUser bidder, int amount) {
     MaxBid hiddenMax = leadingMaxBid().orElseThrow(
         () -> new DomainStateException("Expected maxBid does not exist"));
 

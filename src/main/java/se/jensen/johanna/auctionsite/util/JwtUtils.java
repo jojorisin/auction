@@ -9,18 +9,18 @@ import se.jensen.johanna.auctionsite.exception.JwtAuthenticationException;
 public class JwtUtils {
 
 
-    public Long extractUserId(Jwt jwt) {
-        String sub = jwt.getSubject();
-        if (sub == null || sub.isBlank()) {
-            throw new JwtAuthenticationException("JWT Subject is missing");
-        }
-        try {
-            return Long.parseLong(sub);
-        } catch (NumberFormatException e) {
-            throw new JwtAuthenticationException("Invalid User ID format in JWT");
-        }
-
+  public Long extractUserId(Jwt jwt) {
+    String sub = jwt.getSubject();
+    if (sub == null || sub.isBlank()) {
+      throw new JwtAuthenticationException("JWT Subject is missing");
     }
+    try {
+      return Long.parseLong(sub);
+    } catch (NumberFormatException e) {
+      throw new JwtAuthenticationException("Invalid AppUser ID format in JWT");
+    }
+
+  }
 
 }
 

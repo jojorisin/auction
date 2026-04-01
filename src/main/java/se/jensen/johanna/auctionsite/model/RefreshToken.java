@@ -27,20 +27,20 @@ public class RefreshToken extends BaseEntity {
 
   @OneToOne
   @JoinColumn(name = "user_id", nullable = false, unique = true)
-  private User user;
+  private AppUser appUser;
 
   @Column(nullable = false)
   Instant expiryDate;
 
-  public static RefreshToken create(User user, long durationMs) {
-    if (user == null) {
-      throw new DomainArgumentException("User is required to create refreshToken");
+  public static RefreshToken create(AppUser appUser, long durationMs) {
+    if (appUser == null) {
+      throw new DomainArgumentException("AppUser is required to create refreshToken");
     }
     if (durationMs <= 0) {
       throw new DomainArgumentException("Duration must be greater than 0");
     }
     return RefreshToken.builder()
-        .user(user)
+        .appUser(appUser)
         .expiryDate(Instant.now().plusMillis(durationMs))
         .token(UUID.randomUUID().toString())
         .build();

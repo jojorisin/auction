@@ -1,61 +1,61 @@
 package se.jensen.johanna.auctionsite.security;
 
+import java.util.Collection;
+import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import se.jensen.johanna.auctionsite.model.User;
+import se.jensen.johanna.auctionsite.model.AppUser;
 import se.jensen.johanna.auctionsite.model.enums.Role;
 
-import java.util.Collection;
-import java.util.List;
-
 public class MyUserDetails implements UserDetails {
-    private final User user;
 
-    public MyUserDetails(User user) {
-        this.user = user;
-    }
+  private final AppUser appUser;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
-    }
+  public MyUserDetails(AppUser appUser) {
+    this.appUser = appUser;
+  }
 
-    @Override
-    public String getPassword() {
-        return user.getHashedPassword();
-    }
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return List.of(new SimpleGrantedAuthority("ROLE_" + appUser.getRole().name()));
+  }
 
-    @Override
-    public String getUsername() {
-        return user.getEmail();
-    }
+  @Override
+  public String getPassword() {
+    return appUser.getHashedPassword();
+  }
 
-    public Long getUserId() {
-        return user.getId();
-    }
+  @Override
+  public String getUsername() {
+    return appUser.getEmail();
+  }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+  public Long getUserId() {
+    return appUser.getId();
+  }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+  @Override
+  public boolean isAccountNonExpired() {
+    return true;
+  }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+  @Override
+  public boolean isAccountNonLocked() {
+    return true;
+  }
 
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return true;
+  }
 
-    public Role getRole() {
-        return user.getRole();
-    }
+  @Override
+  public boolean isEnabled() {
+    return true;
+  }
+
+  public Role getRole() {
+    return appUser.getRole();
+  }
 }

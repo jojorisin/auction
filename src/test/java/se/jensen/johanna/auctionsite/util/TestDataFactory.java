@@ -4,17 +4,17 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import se.jensen.johanna.auctionsite.model.AppUser;
 import se.jensen.johanna.auctionsite.model.Auction;
 import se.jensen.johanna.auctionsite.model.Item;
-import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.model.enums.Role;
 
 public class TestDataFactory {
 
-  public static User createUser(Long id) {
-    return User.builder()
+  public static AppUser createUser(Long id) {
+    return AppUser.builder()
         .id(id)
         .email("test@test.com")
         .role(Role.MEMBER)
@@ -22,8 +22,8 @@ public class TestDataFactory {
         .build();
   }
 
-  public static User createUser(String email) {
-    return User.builder()
+  public static AppUser createUser(String email) {
+    return AppUser.builder()
         .email(email)
         .role(Role.MEMBER)
         .hashedPassword("<PASSWORD>")
@@ -45,7 +45,7 @@ public class TestDataFactory {
         .build();
   }
 
-  public static Item createItem(User seller) {
+  public static Item createItem(AppUser seller) {
     List<String> imageUrls = new ArrayList<>();
     imageUrls.add("imageUrl");
     return Item.builder()

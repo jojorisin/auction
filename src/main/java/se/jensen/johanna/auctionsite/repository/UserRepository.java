@@ -1,15 +1,14 @@
 package se.jensen.johanna.auctionsite.repository;
 
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import se.jensen.johanna.auctionsite.model.User;
-
-import java.util.Optional;
+import se.jensen.johanna.auctionsite.model.AppUser;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<AppUser, Long> {
 
-    Optional<User> findUserByEmail(String email);
+  Optional<AppUser> findUserByEmail(String email);
 
-    boolean existsByEmail(String email);
+  boolean existsByEmail(String email);
 }

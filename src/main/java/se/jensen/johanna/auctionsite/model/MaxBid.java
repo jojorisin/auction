@@ -27,13 +27,13 @@ public class MaxBid extends BaseEntity {
 
   @ManyToOne
   @JoinColumn(name = "bidder_id", nullable = false)
-  private User bidder;
+  private AppUser bidder;
 
   @NotNull
   @Column(name = "max_sum", nullable = false, updatable = false)
   private Integer maxSum;
 
-  public static MaxBid create(Auction auction, User bidder, int maxSum) {
+  public static MaxBid create(Auction auction, AppUser bidder, int maxSum) {
     if (auction == null) {
       throw new DomainArgumentException("Auction is required");
     }

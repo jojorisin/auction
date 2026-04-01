@@ -29,6 +29,7 @@ public interface AuctionMapper {
   @Mapping(target = "auctionId", source = "id")
   @Mapping(target = "highestBid", expression = "java(auction.leadingAmount())")
   @Mapping(target = "title", source = "auction.item.title")
+  @Mapping(target = "imageUrls", source = "auction.item.imageUrls")
   WonAuctionResponse toMyWonAuction(Auction auction);
 
 

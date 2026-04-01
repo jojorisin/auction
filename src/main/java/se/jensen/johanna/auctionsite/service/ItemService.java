@@ -13,8 +13,8 @@ import se.jensen.johanna.auctionsite.dto.my.MyItemResponse;
 import se.jensen.johanna.auctionsite.exception.DomainStateException;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
 import se.jensen.johanna.auctionsite.mapper.ItemMapper;
+import se.jensen.johanna.auctionsite.model.AppUser;
 import se.jensen.johanna.auctionsite.model.Item;
-import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
@@ -49,7 +49,7 @@ public class ItemService {
   @SneakyThrows
   @Transactional
   public AdminItemResponse createItem(CreateItemRequest request) {
-    User seller = userRepository.findById(request.sellerId()).orElseThrow(() ->
+    AppUser seller = userRepository.findById(request.sellerId()).orElseThrow(() ->
         new NotFoundException(String.format(
             "Seller with id %d not found.",
             request.sellerId()
