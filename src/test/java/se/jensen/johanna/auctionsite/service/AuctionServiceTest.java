@@ -32,7 +32,7 @@ class AuctionServiceTest extends AuctionTestBase {
   private AuctionMapper auctionMapper;
 
   @Test
-  void shouldCreateAuctionForItemAndSetItemStatusToPlanned() {
+  void shouldCreateAuctionForItemAndSetItemStatusToPrepared() {
     when(itemRepository.findById(any())).thenReturn(Optional.of(item));
 
     auctionService.createAuctionForItem(item.getId(), new CreateAuctionRequest(10000));
