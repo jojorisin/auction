@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import se.jensen.johanna.auctionsite.dto.BidRequest;
 import se.jensen.johanna.auctionsite.exception.InvalidBidException;
 import se.jensen.johanna.auctionsite.model.Auction;
@@ -40,6 +42,18 @@ public class BidServiceConcurrencyIntegrationTest extends AuctionTestBase {
 
   @Autowired
   private ItemRepository itemRepository;
+
+  @MockitoBean
+  private org.springframework.security.oauth2.jwt.JwtEncoder jwtEncoder;
+
+  @MockitoBean
+  private JwtDecoder jwtDecoder;
+
+  @MockitoBean
+  private com.nimbusds.jose.jwk.source.JWKSource<com.nimbusds.jose.proc.SecurityContext> jwkSource;
+
+  @MockitoBean
+  private java.security.KeyPair keyPair;
 
   @Test
   void shouldHandleConcurrentBids() throws InterruptedException {
