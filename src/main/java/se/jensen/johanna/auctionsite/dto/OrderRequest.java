@@ -1,7 +1,7 @@
 package se.jensen.johanna.auctionsite.dto;
 
+import se.jensen.johanna.auctionsite.model.AppUser;
 import se.jensen.johanna.auctionsite.model.Auction;
-import se.jensen.johanna.auctionsite.model.User;
 
 /**
  * Contains details about sold auction order
@@ -12,10 +12,11 @@ import se.jensen.johanna.auctionsite.model.User;
  * @param buyer
  */
 public record OrderRequest(
-        Auction auction,
-        User seller,
-        Integer orderSum,
-        User buyer
+    Auction auction,
+    AppUser seller,
+    Integer orderSum,
+    AppUser buyer
 
 ) {
+
 }

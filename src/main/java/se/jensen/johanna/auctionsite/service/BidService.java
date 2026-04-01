@@ -25,9 +25,9 @@ import se.jensen.johanna.auctionsite.event.BidPlacedEvent;
 import se.jensen.johanna.auctionsite.exception.DomainArgumentException;
 import se.jensen.johanna.auctionsite.exception.NotFoundException;
 import se.jensen.johanna.auctionsite.mapper.BidMapper;
+import se.jensen.johanna.auctionsite.model.AppUser;
 import se.jensen.johanna.auctionsite.model.Auction;
 import se.jensen.johanna.auctionsite.model.Bid;
-import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.BidRepository;
@@ -78,9 +78,9 @@ public class BidService {
   }
 
   /**
-   * Retrieves a list of all active bids for authenticated user
+   * Retrieves a list of all active bids for authenticated appUser
    *
-   * @param userId ID of user to fetch bids for
+   * @param userId ID of appUser to fetch bids for
    * @return a list of {@link MyActiveBids} contains information about the bids and auction
    */
   @Transactional(readOnly = true)
@@ -122,13 +122,14 @@ public class BidService {
   public BidResponse placeBid(BidRequest bidRequest, Long userId, Long auctionId) {
     Auction auction = auctionRepository.findByIdForBidding(auctionId).orElseThrow(() ->
         new NotFoundException(String.format("Auction with id %d not found", auctionId)));
-    User bidder = userRepository.findById(userId).orElseThrow(() ->
-        new NotFoundException(String.format("User with id %d not found", userId)));
+    AppUser bidder = userRepository.findById(userId).orElseThrow(() ->
+        new NotFoundException(String.format("AppUser with id %d not found", userId)));
     if (bidder.getId().equals(auction.getItem().getSeller().getId())) {
       throw new DomainArgumentException("You can not bid on your own item.");
     }
     int amount = bidRequest.amount();
-    log.info("Attempting to place bid - user {}, auction {}, amount {}", userId, auctionId, amount);
+    log.info("Attempting to place bid - appUser {}, auction {}, amount {}", userId, auctionId,
+        amount);
     BiddingResult result = auction.placeBid(bidder, amount);
 
     // crucial to save winner last for id and created at sorting
@@ -151,7 +152,7 @@ public class BidService {
 
     auctionRepository.save(auction);
     log.info(
-        "Bid placed - user {}, auction {}, leading: {}, is auto: {}",
+        "Bid placed - appUser {}, auction {}, leading: {}, is auto: {}",
         userId,
         auctionId,
         result.newBidderLeads(),

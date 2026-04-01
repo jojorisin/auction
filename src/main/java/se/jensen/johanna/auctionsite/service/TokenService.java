@@ -1,5 +1,8 @@
 package se.jensen.johanna.auctionsite.service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,36 +13,33 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import se.jensen.johanna.auctionsite.security.MyUserDetails;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenService {
-    private final JwtEncoder jwtEncoder;
-    @Value("${jwt.expiration-minutes}")
-    private Long jwtExpirationMinutes;
 
-    public String generateToken(MyUserDetails userDetails) {
-        Instant now = Instant.now();
-        Instant expiresAt = now.plus(jwtExpirationMinutes, ChronoUnit.MINUTES);
-        List<String> scope = userDetails.getAuthorities().stream()
-                                        .map(GrantedAuthority::getAuthority).toList();
+  private final JwtEncoder jwtEncoder;
+  @Value("${jwt.expiration-minutes}")
+  private Long jwtExpirationMinutes;
 
-        JwtClaimsSet claimsSet = JwtClaimsSet.builder()
-                                             .issuer("self")
-                                             .issuedAt(now)
-                                             .expiresAt(expiresAt)
-                                             .subject(userDetails.getUserId().toString())
-                                             .claim("email", userDetails.getUsername())
-                                             .claim("scope", scope)
-                                             .build();
+  public String generateToken(MyUserDetails userDetails) {
+    Instant now = Instant.now();
+    Instant expiresAt = now.plus(jwtExpirationMinutes, ChronoUnit.MINUTES);
+    List<String> scope = userDetails.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority).toList();
 
-        String token = jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
-        log.info("Generated JWT token for user {} with scope {}.", userDetails.getUserId(), scope);
-        return token;
-    }
+    JwtClaimsSet claimsSet = JwtClaimsSet.builder()
+        .issuer("self")
+        .issuedAt(now)
+        .expiresAt(expiresAt)
+        .subject(userDetails.getUserId().toString())
+        .claim("email", userDetails.getUsername())
+        .claim("scope", scope)
+        .build();
+
+    String token = jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    log.info("Generated JWT token for appUser {} with scope {}.", userDetails.getUserId(), scope);
+    return token;
+  }
 }
 

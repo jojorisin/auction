@@ -62,7 +62,7 @@ public class AuthController {
   }
 
   /**
-   * Logs out a user by deleting their refresh token and clearing the cookie.
+   * Logs out a appUser by deleting their refresh token and clearing the cookie.
    *
    * @param refreshTokenStr the refresh token from cookie, optional
    * @return empty Response with clear header

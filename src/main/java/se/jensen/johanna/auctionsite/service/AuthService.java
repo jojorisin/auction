@@ -31,7 +31,7 @@ public class AuthService {
     MyUserDetails userDetails = (MyUserDetails) authenticatedAuth.getPrincipal();
     String accessToken = tokenService.generateToken(userDetails);
     RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
-    log.info("User {} logged in.", userDetails.getUsername());
+    log.info("AppUser {} logged in.", userDetails.getUsername());
     return new LoginResult(
         new LoginResponse(
             accessToken,
@@ -50,11 +50,11 @@ public class AuthService {
             "RefreshToken is not in database"));
 
     MyUserDetails userDetails = (MyUserDetails) userDetailsService.loadUserByUsername(
-        oldToken.getUser()
+        oldToken.getAppUser()
             .getEmail());
     String newAccessToken = tokenService.generateToken(userDetails);
     RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userDetails.getUserId());
-    log.info("User {} refreshed token.", userDetails.getUsername());
+    log.info("AppUser {} refreshed token.", userDetails.getUsername());
     return new RefreshResult(newAccessToken, newRefreshToken.getToken());
   }
 

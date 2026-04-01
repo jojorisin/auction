@@ -10,9 +10,9 @@ import se.jensen.johanna.auctionsite.dto.EmailRequest;
 import se.jensen.johanna.auctionsite.dto.OrderRequest;
 import se.jensen.johanna.auctionsite.dto.enums.EmailType;
 import se.jensen.johanna.auctionsite.exception.DomainStateException;
+import se.jensen.johanna.auctionsite.model.AppUser;
 import se.jensen.johanna.auctionsite.model.Auction;
 import se.jensen.johanna.auctionsite.model.Bid;
-import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 
@@ -28,7 +28,7 @@ public class AuctionClosingService {
   public void closeAuction(Auction auction) {
     AuctionStatus status = auction.close();
     auctionRepository.save(auction);
-    User seller = auction.getItem().getSeller();
+    AppUser seller = auction.getItem().getSeller();
 
     if (status == AuctionStatus.SOLD) {
       Bid winningBid = auction.getWinningBid().orElseThrow(() ->
@@ -71,7 +71,7 @@ public class AuctionClosingService {
     }
   }
 
-  private void notifySeller(Auction auction, User seller) {
+  private void notifySeller(Auction auction, AppUser seller) {
     emailService.sendEmail(new EmailRequest(
         auction.getStatus() == AuctionStatus.SOLD ? EmailType.ITEM_SOLD : EmailType.ITEM_NOT_SOLD,
         seller.getEmail(),

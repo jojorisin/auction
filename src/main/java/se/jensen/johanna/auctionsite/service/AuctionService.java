@@ -208,7 +208,8 @@ public class AuctionService {
   }
 
   /**
-   * Retrieves a list of all auctions where status is SOLD and the current user has the winning bid
+   * Retrieves a list of all auctions where status is SOLD and the current appUser has the winning
+   * bid
    */
   @Transactional(readOnly = true)
   public List<WonAuctionResponse> getMyWonAuctions(Long userId) {

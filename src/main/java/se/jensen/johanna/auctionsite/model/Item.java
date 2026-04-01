@@ -34,7 +34,7 @@ public class Item extends BaseEntity {
 
   @ManyToOne
   @JoinColumn(name = "seller_id", nullable = false)
-  private User seller;
+  private AppUser seller;
 
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
@@ -63,7 +63,7 @@ public class Item extends BaseEntity {
 
   public static Item create(
       @NonNull
-      User seller,
+      AppUser seller,
       @NonNull
       Category category,
       @NonNull

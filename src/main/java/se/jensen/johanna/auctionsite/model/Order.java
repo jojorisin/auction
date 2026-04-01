@@ -33,11 +33,11 @@ public class Order extends BaseEntity {
 
   @ManyToOne
   @JoinColumn(name = "buyer_id")
-  private User buyer;
+  private AppUser buyer;
 
   @ManyToOne
   @JoinColumn(name = "seller_id")
-  private User seller;
+  private AppUser seller;
 
   @Column(name = "order_sum", nullable = false)
   BigDecimal orderSum;
@@ -53,12 +53,11 @@ public class Order extends BaseEntity {
   /**
    * Creates an order
    *
-   * @param auction
    * @param seller   seller for the item
    * @param orderSum sum to be paid
    * @param buyer    winning bidder
    */
-  public static Order create(Auction auction, User seller, Integer orderSum, User buyer) {
+  public static Order create(Auction auction, AppUser seller, Integer orderSum, AppUser buyer) {
     if (auction == null) {
       throw new DomainArgumentException("Auction is required");
     }

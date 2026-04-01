@@ -18,9 +18,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import se.jensen.johanna.auctionsite.dto.BidRequest;
 import se.jensen.johanna.auctionsite.exception.InvalidBidException;
+import se.jensen.johanna.auctionsite.model.AppUser;
 import se.jensen.johanna.auctionsite.model.Auction;
 import se.jensen.johanna.auctionsite.model.Item;
-import se.jensen.johanna.auctionsite.model.User;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.ItemRepository;
 import se.jensen.johanna.auctionsite.repository.UserRepository;
@@ -57,9 +57,9 @@ public class BidServiceConcurrencyIntegrationTest extends AuctionTestBase {
 
   @Test
   void shouldHandleConcurrentBids() throws InterruptedException {
-    User seller = userRepository.save(TestDataFactory.createUser("seller@test.com"));
-    User bidder1 = userRepository.save(TestDataFactory.createUser("u1@u.com"));
-    User bidder2 = userRepository.save(TestDataFactory.createUser("u2@u.com"));
+    AppUser seller = userRepository.save(TestDataFactory.createUser("seller@test.com"));
+    AppUser bidder1 = userRepository.save(TestDataFactory.createUser("u1@u.com"));
+    AppUser bidder2 = userRepository.save(TestDataFactory.createUser("u2@u.com"));
     Item savedItem = itemRepository.save(TestDataFactory.createItem(seller));
     Auction savedAuction = auctionRepository.save(
         TestDataFactory.createActiveAuction(null, savedItem, 3000));

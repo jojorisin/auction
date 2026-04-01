@@ -32,7 +32,7 @@ public class Bid extends BaseEntity {
 
   @ManyToOne
   @JoinColumn(name = "bidder_id", nullable = false, updatable = false)
-  private User bidder;
+  private AppUser bidder;
 
   @Column(name = "bid_sum", nullable = false, updatable = false)
   private Integer bidSum;
@@ -48,7 +48,7 @@ public class Bid extends BaseEntity {
    * @param auction Auction that is being bid on
    * @return A new bid
    */
-  public static Bid createBid(Auction auction, User bidder, int bidSum) {
+  public static Bid createBid(Auction auction, AppUser bidder, int bidSum) {
     validateBid(auction, bidder, bidSum);
     return Bid.builder()
         .auction(auction)
@@ -58,7 +58,7 @@ public class Bid extends BaseEntity {
         .build();
   }
 
-  public static Bid generateBidFromMaxBid(Auction auction, User bidder, int bidSum) {
+  public static Bid generateBidFromMaxBid(Auction auction, AppUser bidder, int bidSum) {
     validateBid(auction, bidder, bidSum);
     return Bid.builder()
         .auction(auction)
@@ -68,7 +68,7 @@ public class Bid extends BaseEntity {
         .build();
   }
 
-  public static void validateBid(Auction auction, User bidder, int bidSum) {
+  public static void validateBid(Auction auction, AppUser bidder, int bidSum) {
     if (auction == null) {
       throw new DomainArgumentException("Auction is required");
     }
