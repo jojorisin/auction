@@ -78,8 +78,14 @@ public class SecurityConfig {
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/auctions/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/auctions").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/auctions/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/auctions/{id}/bids").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/auctions/categories").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/auctions/subcategories").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/auctions/search").permitAll()
                 .requestMatchers("/api/payments/webhook").permitAll()
                 .anyRequest().authenticated())
         .oauth2ResourceServer(oauth2 ->
