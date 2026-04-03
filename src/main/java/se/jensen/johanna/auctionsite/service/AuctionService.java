@@ -16,8 +16,8 @@ import se.jensen.johanna.auctionsite.dto.AuctionsListResponse;
 import se.jensen.johanna.auctionsite.dto.admin.AdminAuctionResponse;
 import se.jensen.johanna.auctionsite.dto.admin.CreateAuctionRequest;
 import se.jensen.johanna.auctionsite.dto.admin.FailedToLaunch;
+import se.jensen.johanna.auctionsite.dto.admin.LaunchInstants;
 import se.jensen.johanna.auctionsite.dto.admin.LaunchRequest;
-import se.jensen.johanna.auctionsite.dto.admin.LaunchRequestWeb;
 import se.jensen.johanna.auctionsite.dto.admin.LaunchResponse;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateAuctionRequest;
 import se.jensen.johanna.auctionsite.dto.my.WonAuctionResponse;
@@ -51,12 +51,9 @@ public class AuctionService {
    * @return a list of {@link AdminAuctionResponse} containing all auctions.
    */
   @Transactional(readOnly = true)
-  public Page<AdminAuctionResponse> findAllAuctions(
-      Category category,
-      Category.SubCategory subCategory,
-      Pageable pageable
-  ) {
-    return auctionRepository.findAllAuctions(category, subCategory, pageable)
+  public Page<AdminAuctionResponse> getAllAuctions(Category category,
+      Category.SubCategory subCategory, AuctionStatus status, Pageable pageable) {
+    return auctionRepository.findAllAuctions(category, subCategory, status, pageable)
         .map(auctionMapper::toAdminAuctionResponse);
   }
 
@@ -83,10 +80,8 @@ public class AuctionService {
   public AdminAuctionResponse createAuctionForItem(Long itemId, CreateAuctionRequest request) {
     Item item = getItemOrThrow(itemId);
     if (item.getStatus() != ItemStatus.AVAILABLE) {
-      throw new DomainStateException(String.format(
-          "Auction already exists or is planned for item with id %d",
-          item.getId()
-      ));
+      throw new DomainStateException(
+          String.format("Auction already exists or is planned for item with id %d", item.getId()));
     }
     Auction auction = Auction.createAuction(item, request.acceptedPrice());
     auctionRepository.save(auction);
@@ -104,49 +99,39 @@ public class AuctionService {
    */
   @Transactional
   public LaunchResponse launchBatch(LaunchRequest request) {
-    Instant startTime =
-        request.startTime() != null ? request.startTime() : Instant.now();
-    Instant endTime =
-        request.endTime() != null ? request.endTime()
-            : startTime.plus(7, ChronoUnit.DAYS);
+    // convert to instants from local
+    LaunchInstants instants = TimeUtils.getLaunchInstants(request);
+    if (instants.endTime().isBefore(instants.startTime())) {
+      throw new DomainArgumentException("End time must be after start time");
+    }
     int size = request.size() != null ? request.size() : 50;
     Pageable limit = PageRequest.of(0, size);
 
-    if (endTime.isBefore(startTime)) {
-      throw new DomainArgumentException("End time must be after start time");
-    }
-    log.info("Launching {} auctions from {} to {}", size, startTime, endTime);
-
     Page<Auction> auctionsToLaunch = auctionRepository.findByStatusOrderByCreatedAtAsc(
-        AuctionStatus.INACTIVE,
-        limit
-    );
+        request.status() != null ? request.status() : AuctionStatus.INACTIVE, limit);
+
+    log.info("Launching {} auctions with status {} from {} to {}", size, request.status(),
+        instants.startTime(), instants.endTime());
+
     int minutesToAdd = 0;
     int successfulLaunches = 0;
     int failedLaunches = 0;
     List<FailedToLaunch> failed = new ArrayList<>();
     for (Auction a : auctionsToLaunch) {
       if (!a.isReadyToLaunch()) {
-        failed.add(new FailedToLaunch(a.getId(), "Missing required fields"));
+        failed.add(new FailedToLaunch(a.getId(), "Invalid or missing fields"));
         failedLaunches++;
-        log.warn("Failed to launch: Auction {} is missing required fields", a.getId());
+        log.warn("Failed to launch: Auction {} has invalid or missing fields", a.getId());
         continue;
       }
-      Instant individualEndTime = endTime.plus(minutesToAdd, ChronoUnit.MINUTES);
-      a.launchAuction(startTime, individualEndTime);
+      Instant individualEndTime = instants.endTime().plus(minutesToAdd, ChronoUnit.MINUTES);
+      a.launchAuction(instants.startTime(), individualEndTime);
       minutesToAdd++;
       successfulLaunches++;
     }
     auctionRepository.saveAll(auctionsToLaunch);
     log.info("Launched {} auctions, {} failed", successfulLaunches, failedLaunches);
     return new LaunchResponse(successfulLaunches, failedLaunches, failed);
-  }
-
-  @Transactional
-  public LaunchResponse webLaunch(LaunchRequestWeb request) {
-    return launchBatch(new LaunchRequest(request.size(),
-        TimeUtils.toUtcInstant(request.startDate(), request.startTime()),
-        TimeUtils.toUtcInstant(request.endDate(), request.endTime())));
   }
 
 
@@ -198,11 +183,8 @@ public class AuctionService {
    * less detailed information for scrolling through auctions.
    */
   @Transactional(readOnly = true)
-  public Page<AuctionsListResponse> getAllActiveAuctions(
-      Category category,
-      Category.SubCategory subCategory,
-      Pageable pageable
-  ) {
+  public Page<AuctionsListResponse> getAllActiveAuctions(Category category,
+      Category.SubCategory subCategory, Pageable pageable) {
     return auctionRepository.findActiveAuctions(category, subCategory, pageable)
         .map(auctionMapper::toAuctionsList);
   }
@@ -218,15 +200,13 @@ public class AuctionService {
   }
 
   private Auction getAuctionOrThrow(Long auctionId) {
-    return auctionRepository.findById(auctionId).orElseThrow(() ->
-        new NotFoundException(String.format("Auction with id %d not found", auctionId))
-    );
+    return auctionRepository.findById(auctionId).orElseThrow(
+        () -> new NotFoundException(String.format("Auction with id %d not found", auctionId)));
   }
 
   private Item getItemOrThrow(Long itemId) {
-    return itemRepository.findById(itemId).orElseThrow(() ->
-        new NotFoundException(String.format("Item with id %d not found", itemId))
-    );
+    return itemRepository.findById(itemId).orElseThrow(
+        () -> new NotFoundException(String.format("Item with id %d not found", itemId)));
   }
 }
 

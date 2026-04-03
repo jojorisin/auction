@@ -39,12 +39,14 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
       Pageable pageable
   );
 
+  @EntityGraph(attributePaths = {"item"})
   @Query("SELECT a FROM Auction a WHERE" +
       " (:category IS NULL OR a.item.category=:category ) " +
-      "AND ( :subCategory IS NULL OR a.item.subCategory=:subCategory )")
+      "AND ( :subCategory IS NULL OR a.item.subCategory=:subCategory ) AND (:status IS NULL OR a.status=:status)")
   Page<Auction> findAllAuctions(
       @Param("category") Category category,
       @Param("subCategory") Category.SubCategory subCategory,
+      @Param("status") AuctionStatus status,
       Pageable pageable
   );
 

@@ -339,7 +339,7 @@ public class Auction extends BaseEntity {
 
   public boolean isReadyToLaunch() {
     return item != null && acceptedPrice != null && acceptedPrice >= 0
-        && status == AuctionStatus.INACTIVE;
+        && status.isAvailableToLaunch();
   }
 
   public boolean acceptedMet() {

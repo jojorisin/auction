@@ -20,8 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import se.jensen.johanna.auctionsite.dto.admin.AdminAuctionResponse;
 import se.jensen.johanna.auctionsite.dto.admin.CreateAuctionRequest;
-import se.jensen.johanna.auctionsite.dto.admin.LaunchRequestWeb;
+import se.jensen.johanna.auctionsite.dto.admin.LaunchRequest;
 import se.jensen.johanna.auctionsite.dto.admin.LaunchResponse;
+import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.service.AuctionService;
 
@@ -36,8 +37,10 @@ public class AdminAuctionWebController {
   public String showAuctionList(
       @ParameterObject @PageableDefault(size = 20, sort = "endTime", direction = Sort.Direction.ASC) Pageable pageable,
       @RequestParam(required = false) Category category,
-      @RequestParam(required = false) Category.SubCategory subCategory, Model model) {
-    Page<AdminAuctionResponse> auctions = auctionService.findAllAuctions(category, subCategory,
+      @RequestParam(required = false) Category.SubCategory subCategory,
+      @RequestParam(required = false) AuctionStatus status, Model model) {
+    Page<AdminAuctionResponse> auctions = auctionService.getAllAuctions(category, subCategory,
+        status,
         pageable);
     model.addAttribute("auctions", auctions);
     return "admin-auctions-list";
@@ -67,8 +70,8 @@ public class AdminAuctionWebController {
   }
 
   @PostMapping("/auctions/launch")
-  public String launch(@ModelAttribute LaunchRequestWeb request, Model model) {
-    LaunchResponse response = auctionService.webLaunch(request);
+  public String launch(@ModelAttribute LaunchRequest request, Model model) {
+    LaunchResponse response = auctionService.launchBatch(request);
     return "redirect:/web/admin/auctions";
   }
 
@@ -82,8 +85,9 @@ public class AdminAuctionWebController {
     LocalDate endDate = startDate.plusDays(7);
     LocalTime endTime = startTime;
 
-    model.addAttribute("launchRequest", new LaunchRequestWeb(
+    model.addAttribute("launchRequest", new LaunchRequest(
         50,
+        AuctionStatus.INACTIVE,
         startDate,
         startTime,
         endDate,

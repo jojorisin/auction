@@ -24,6 +24,7 @@ import se.jensen.johanna.auctionsite.dto.admin.CreateAuctionRequest;
 import se.jensen.johanna.auctionsite.dto.admin.LaunchRequest;
 import se.jensen.johanna.auctionsite.dto.admin.LaunchResponse;
 import se.jensen.johanna.auctionsite.dto.admin.UpdateAuctionRequest;
+import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.service.AuctionScheduleService;
 import se.jensen.johanna.auctionsite.service.AuctionService;
@@ -48,8 +49,10 @@ public class AdminAuctionController {
   public ResponseEntity<Page<AdminAuctionResponse>> getAllAuctions(
       @ParameterObject @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       @RequestParam(required = false) Category category,
-      @RequestParam(required = false) Category.SubCategory subCategory) {
-    return ResponseEntity.ok(auctionService.findAllAuctions(category, subCategory, pageable));
+      @RequestParam(required = false) Category.SubCategory subCategory,
+      @RequestParam(required = false) AuctionStatus status) {
+    return ResponseEntity.ok(
+        auctionService.getAllAuctions(category, subCategory, status, pageable));
   }
 
   @GetMapping("/auctions/{auctionId}")
