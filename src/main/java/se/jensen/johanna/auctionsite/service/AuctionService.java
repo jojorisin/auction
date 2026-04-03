@@ -32,6 +32,7 @@ import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.model.enums.ItemStatus;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 import se.jensen.johanna.auctionsite.repository.ItemRepository;
+import se.jensen.johanna.auctionsite.repository.OrderRepository;
 import se.jensen.johanna.auctionsite.util.TimeUtils;
 
 @Slf4j
@@ -42,6 +43,7 @@ public class AuctionService {
   private final AuctionRepository auctionRepository;
   private final AuctionMapper auctionMapper;
   private final ItemRepository itemRepository;
+  private final OrderRepository orderRepository;
 
   //       *****************ADMIN***********
 
@@ -190,13 +192,13 @@ public class AuctionService {
   }
 
   /**
-   * Retrieves a list of all auctions where status is SOLD and the current appUser has the winning
-   * bid
+   * Retrieves a list of all sold auctions where status is SOLD and the current appUser has the
+   * winning bid
    */
   @Transactional(readOnly = true)
   public List<WonAuctionResponse> getMyWonAuctions(Long userId) {
-    return auctionRepository.findWonAuctionsByUserId(userId).stream()
-        .map(auctionMapper::toMyWonAuction).toList();
+    return orderRepository.findByBuyer_id(userId).stream().map(auctionMapper::toMyWonAuction)
+        .toList();
   }
 
   private Auction getAuctionOrThrow(Long auctionId) {

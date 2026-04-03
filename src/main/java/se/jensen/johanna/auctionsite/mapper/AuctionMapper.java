@@ -8,6 +8,7 @@ import se.jensen.johanna.auctionsite.dto.AuctionsListResponse;
 import se.jensen.johanna.auctionsite.dto.admin.AdminAuctionResponse;
 import se.jensen.johanna.auctionsite.dto.my.WonAuctionResponse;
 import se.jensen.johanna.auctionsite.model.Auction;
+import se.jensen.johanna.auctionsite.model.Order;
 import se.jensen.johanna.auctionsite.service.enums.BidTier;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -26,11 +27,14 @@ public interface AuctionMapper {
   @Mapping(target = "increment", expression = "java(BidTier.getBidIncrement(auction.getItem().getValuation()))")
   AuctionResponse toAuctionResponse(Auction auction);
 
-  @Mapping(target = "auctionId", source = "id")
-  @Mapping(target = "highestBid", expression = "java(auction.leadingAmount())")
+  @Mapping(target = "auctionId", source = "order.auction.id")
+  @Mapping(target = "orderId", source = "id")
+  @Mapping(target = "status", source = "status")
+  @Mapping(target = "winningBid", source = "orderSum")
+  @Mapping(target = "endTime", source = "auction.endTime")
   @Mapping(target = "title", source = "auction.item.title")
   @Mapping(target = "imageUrls", source = "auction.item.imageUrls")
-  WonAuctionResponse toMyWonAuction(Auction auction);
+  WonAuctionResponse toMyWonAuction(Order order);
 
 
   @Mapping(target = "auctionId", source = "id")
