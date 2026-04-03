@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import se.jensen.johanna.auctionsite.dto.EmailRequest;
 import se.jensen.johanna.auctionsite.dto.OrderRequest;
+import se.jensen.johanna.auctionsite.dto.admin.LaunchRequest;
 import se.jensen.johanna.auctionsite.dto.enums.EmailType;
 import se.jensen.johanna.auctionsite.exception.DomainStateException;
 import se.jensen.johanna.auctionsite.model.AppUser;
@@ -16,6 +18,7 @@ import se.jensen.johanna.auctionsite.model.Bid;
 import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.repository.AuctionRepository;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -24,6 +27,7 @@ public class AuctionClosingService {
   private final AuctionRepository auctionRepository;
   private final OrderService orderService;
   private final EmailService emailService;
+  private final AuctionService auctionService;
 
   public void closeAuction(Auction auction) {
     AuctionStatus status = auction.close();
@@ -44,6 +48,9 @@ public class AuctionClosingService {
       ));
       notifyBidders(auction.getBids(), winningBid);
     } else {
+      // relaunch if not sold
+      log.info("Scheduler relaunching auction {} with status {}", auction.getId(), status);
+      auctionService.launchBatch(new LaunchRequest(1, status, null, null, null, null));
       notifyBidders(auction.getBids(), null);
     }
     notifySeller(auction, seller);
