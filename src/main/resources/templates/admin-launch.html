@@ -21,6 +21,15 @@
     <input type="number" id="size" th:field="*{size}" class="form-control">
   </div>
 
+  <div class="mb-3">
+    <label for="auctionStatus" class="form-label">Status</label>
+    <select id="auctionStatus" th:field="*{status}" class="form-select">
+      <option value="INACTIVE">INACTIVE</option>
+      <option value="EXPIRED">EXPIRED</option>
+      <option value="ACCEPTED_NOT_MET">ACCEPTED_NOT_MET</option>
+    </select>
+  </div>
+
   <div class="row mb-3">
     <div class="col">
       <label for="startDate" class="form-label">Startdatum</label>

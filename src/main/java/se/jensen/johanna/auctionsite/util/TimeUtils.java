@@ -5,37 +5,31 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import org.springframework.stereotype.Component;
+import se.jensen.johanna.auctionsite.dto.admin.LaunchInstants;
+import se.jensen.johanna.auctionsite.dto.admin.LaunchRequest;
 
 @Component
 public class TimeUtils {
 
   private static final ZoneId SWEDEN_ZONE = ZoneId.of("Europe/Stockholm");
 
-  /**
-   * Converts Instant from the client
-   *
-   * @param instantInput
-   * @return
-   */
-  public static Instant fromLocalToUtc(Instant instantInput) {
-    if (instantInput == null) {
-      return null;
-    }
-
-    return instantInput
-        .atZone(ZoneId.of("UTC"))
-        .withZoneSameLocal(SWEDEN_ZONE)
-        .toInstant();
-  }
-
   public static Instant toUtcInstant(LocalDate date, LocalTime time) {
     if (date == null || time == null) {
       return null;
     }
+    return date.atTime(time).atZone(SWEDEN_ZONE).toInstant();
+  }
 
-    return date.atTime(time)
-        .atZone(SWEDEN_ZONE)
-        .toInstant();
+
+  public static LaunchInstants getLaunchInstants(LaunchRequest request) {
+    LocalDate localStartDate = request.startDate() != null ? request.startDate() : LocalDate.now();
+    LocalTime localStartTime = request.startTime() != null ? request.startTime() : LocalTime.now();
+    LocalDate localEndDate =
+        request.endDate() != null ? request.endDate() : localStartDate.plusDays(7);
+    LocalTime localEndTime = request.endTime() != null ? request.endTime() : localStartTime;
+
+    return new LaunchInstants(toUtcInstant(localStartDate, localStartTime),
+        toUtcInstant(localEndDate, localEndTime));
   }
 
 }
