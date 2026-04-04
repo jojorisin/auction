@@ -171,6 +171,12 @@ public class AuctionService {
 
   //*****************PUBLIC**********
 
+  @Transactional(readOnly = true)
+  public Page<AuctionsListResponse> searchAuctions(String query, Pageable pageable) {
+    return auctionRepository.findByKeyword(query, AuctionStatus.ACTIVE, pageable)
+        .map(auctionMapper::toAuctionsList);
+  }
+
   /**
    * Retrieves an active auction with public details, including item info.
    */

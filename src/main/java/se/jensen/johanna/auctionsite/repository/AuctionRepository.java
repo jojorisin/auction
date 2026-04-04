@@ -18,6 +18,20 @@ import se.jensen.johanna.auctionsite.model.enums.Category;
 @Repository
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
+  @Query(value = "SELECT a FROM Auction a JOIN FETCH a.item i WHERE a.status=:status AND " +
+      "LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+      "LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+      "LOWER(i.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+      "LOWER(i.subCategory) LIKE LOWER(CONCAT('%', :keyword, '%'))",
+      countQuery = "SELECT COUNT(a) FROM Auction a JOIN a.item i WHERE a.status=:status AND " +
+          "LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+          "LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+          "LOWER(i.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+          "LOWER(i.subCategory) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+  Page<Auction> findByKeyword(@Param("keyword") String keyword,
+      @Param("status") AuctionStatus status,
+      Pageable pageable);
+
   @EntityGraph(attributePaths = {"item", "winningBid", "winningBid.bidder"})
   @Query("SELECT a FROM Auction a WHERE a.id = :auctionId")
   Optional<Auction> findByIdForBidding(@Param("auctionId") Long auctionId);
