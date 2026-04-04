@@ -171,12 +171,6 @@ public class AuctionService {
 
   //*****************PUBLIC**********
 
-  @Transactional(readOnly = true)
-  public Page<AuctionsListResponse> searchAuctions(String query, Pageable pageable) {
-    return auctionRepository.findByKeyword(query, AuctionStatus.ACTIVE, pageable)
-        .map(auctionMapper::toAuctionsList);
-  }
-
   /**
    * Retrieves an active auction with public details, including item info.
    */
@@ -187,13 +181,15 @@ public class AuctionService {
   }
 
   /**
-   * Retrieves a list of all active auctions, optionally filtered by category and sorted. Containing
-   * less detailed information for scrolling through auctions.
+   * Retrieves a list of all active auctions, optionally filtered and sorted. Containing less
+   * detailed information for scrolling through auctions.
    */
   @Transactional(readOnly = true)
-  public Page<AuctionsListResponse> getAllActiveAuctions(Category category,
+  public Page<AuctionsListResponse> getAllActiveAuctions(String query, AuctionStatus status,
+      Category category,
       Category.SubCategory subCategory, Pageable pageable) {
-    return auctionRepository.findActiveAuctions(category, subCategory, pageable)
+    return auctionRepository.findFilteredAuctions(query, status, category, subCategory,
+            pageable)
         .map(auctionMapper::toAuctionsList);
   }
 

@@ -28,6 +28,7 @@ import se.jensen.johanna.auctionsite.dto.AuctionsListResponse;
 import se.jensen.johanna.auctionsite.dto.BidHistoryResponse;
 import se.jensen.johanna.auctionsite.dto.BidRequest;
 import se.jensen.johanna.auctionsite.dto.BidResponse;
+import se.jensen.johanna.auctionsite.model.enums.AuctionStatus;
 import se.jensen.johanna.auctionsite.model.enums.Category;
 import se.jensen.johanna.auctionsite.service.AuctionService;
 import se.jensen.johanna.auctionsite.service.BidService;
@@ -42,14 +43,6 @@ public class AuctionController {
   private final BidService bidService;
   private final JwtUtils jwtUtils;
 
-  @GetMapping("/search")
-  public ResponseEntity<Page<AuctionsListResponse>> searchAuctions(
-      @ParameterObject @PageableDefault(size = 20, sort = "endTime", direction = Sort.Direction.ASC) Pageable pageable,
-      @RequestParam("q") String query) {
-    return ResponseEntity.ok(auctionService.searchAuctions(query, pageable));
-
-  }
-
   /**
    * Retrieves a paginated list of auctions with status ACTIVE for public users to scroll Optional
    * sorting of category and subcategory
@@ -57,9 +50,12 @@ public class AuctionController {
   @GetMapping
   public ResponseEntity<Page<AuctionsListResponse>> getAllActiveAuctions(
       @ParameterObject @PageableDefault(size = 20, sort = "endTime", direction = Sort.Direction.ASC) Pageable pageable,
+      @RequestParam(name = "q", required = false, defaultValue = "") String query,
+      @RequestParam(name = "status", required = false, defaultValue = "ACTIVE") AuctionStatus status,
       @RequestParam(required = false) Category category,
       @RequestParam(required = false) Category.SubCategory subCategory) {
-    return ResponseEntity.ok(auctionService.getAllActiveAuctions(category, subCategory, pageable));
+    return ResponseEntity.ok(
+        auctionService.getAllActiveAuctions(query, status, category, subCategory, pageable));
   }
 
   @GetMapping("/{auctionId}")

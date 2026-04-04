@@ -18,19 +18,33 @@ import se.jensen.johanna.auctionsite.model.enums.Category;
 @Repository
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
-  @Query(value = "SELECT a FROM Auction a JOIN FETCH a.item i WHERE a.status=:status AND " +
+  @Query(value = "SELECT a FROM Auction a JOIN FETCH a.item i WHERE " +
+      "a.status = :status " +
+      "AND (:keyword IS NULL OR :keyword = '' OR (" +
       "LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
       "LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
       "LOWER(i.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-      "LOWER(i.subCategory) LIKE LOWER(CONCAT('%', :keyword, '%'))",
-      countQuery = "SELECT COUNT(a) FROM Auction a JOIN a.item i WHERE a.status=:status AND " +
+      "LOWER(i.subCategory) LIKE LOWER(CONCAT('%', :keyword, '%')))" +
+      ") " +
+      "AND (:category IS NULL OR i.category = :category) " +
+      "AND (:subCategory IS NULL OR i.subCategory = :subCategory)",
+      countQuery = "SELECT COUNT(a) FROM Auction a JOIN a.item i WHERE " +
+          "a.status = :status " +
+          "AND (:keyword IS NULL OR :keyword = '' OR (" +
           "LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
           "LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
           "LOWER(i.category) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-          "LOWER(i.subCategory) LIKE LOWER(CONCAT('%', :keyword, '%'))")
-  Page<Auction> findByKeyword(@Param("keyword") String keyword,
+          "LOWER(i.subCategory) LIKE LOWER(CONCAT('%', :keyword, '%')))" +
+          ") " +
+          "AND (:category IS NULL OR i.category = :category) " +
+          "AND (:subCategory IS NULL OR i.subCategory = :subCategory)")
+  Page<Auction> findFilteredAuctions(
+      @Param("keyword") String keyword,
       @Param("status") AuctionStatus status,
-      Pageable pageable);
+      @Param("category") Category category,
+      @Param("subCategory") Category.SubCategory subCategory,
+      Pageable pageable
+  );
 
   @EntityGraph(attributePaths = {"item", "winningBid", "winningBid.bidder"})
   @Query("SELECT a FROM Auction a WHERE a.id = :auctionId")
@@ -44,14 +58,6 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
       "AND (a.status='ACTIVE')")
   List<Auction> findEndedAuctionsWithBidsAndItemSeller(@Param("now") Instant now);
 
-  @Query("SELECT a FROM Auction a WHERE a.status='ACTIVE'" +
-      " AND ( :category IS NULL OR a.item.category=:category ) " +
-      "AND ( :subCategory IS NULL OR a.item.subCategory=:subCategory )")
-  Page<Auction> findActiveAuctions(
-      @Param("category") Category category,
-      @Param("subCategory") Category.SubCategory subCategory,
-      Pageable pageable
-  );
 
   @EntityGraph(attributePaths = {"item"})
   @Query("SELECT a FROM Auction a WHERE" +
