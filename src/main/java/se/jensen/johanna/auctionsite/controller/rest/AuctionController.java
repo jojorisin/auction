@@ -42,6 +42,14 @@ public class AuctionController {
   private final BidService bidService;
   private final JwtUtils jwtUtils;
 
+  @GetMapping("/search")
+  public ResponseEntity<Page<AuctionsListResponse>> searchAuctions(
+      @ParameterObject @PageableDefault(size = 20, sort = "endTime", direction = Sort.Direction.ASC) Pageable pageable,
+      @RequestParam("q") String query) {
+    return ResponseEntity.ok(auctionService.searchAuctions(query, pageable));
+
+  }
+
   /**
    * Retrieves a paginated list of auctions with status ACTIVE for public users to scroll Optional
    * sorting of category and subcategory
