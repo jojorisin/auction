@@ -45,7 +45,7 @@ public class ImageService {
 
   private byte[] resizeAndCompress(MultipartFile file) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    Thumbnails.of(file.getInputStream()).size(1280, 1280).outputFormat("jpg").outputQuality(0.75)
+    Thumbnails.of(file.getInputStream()).size(1280, 1280).outputFormat("jpg").outputQuality(0.85)
         .toOutputStream(outputStream);
 
     return outputStream.toByteArray();
