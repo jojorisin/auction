@@ -65,8 +65,8 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(csrf -> csrf.disable())
-        .cors(org.springframework.security.config.Customizer.withDefaults())
+    http.cors(org.springframework.security.config.Customizer.withDefaults())
+        .csrf(csrf -> csrf.disable())
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
@@ -112,6 +112,7 @@ public class SecurityConfig {
         "X-Requested-With",
         "Origin"
     ));
+    configuration.setExposedHeaders(List.of("Set-Cookie"));
     configuration.setAllowCredentials(true);
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
