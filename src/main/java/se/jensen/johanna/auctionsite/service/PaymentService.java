@@ -55,7 +55,7 @@ public class PaymentService {
         .setMode(SessionCreateParams.Mode.PAYMENT).setCustomerEmail(order.getBuyer().getEmail())
         .setSuccessUrl(stripeSuccessUrl + "{CHECKOUT_SESSION_ID}").setCancelUrl(stripeCancelUrl)
         .addLineItem(SessionCreateParams.LineItem.builder().setQuantity(1L).setPriceData(
-            SessionCreateParams.LineItem.PriceData.builder().setCurrency("eur")
+            SessionCreateParams.LineItem.PriceData.builder().setCurrency("sek")
                 .setUnitAmount(amountInCents).setProductData(
                     SessionCreateParams.LineItem.PriceData.ProductData.builder()
                         .setName("Auction: " + order.getAuction().getItem().getTitle()).build())
@@ -63,7 +63,7 @@ public class PaymentService {
     Session session = Session.create(params);
     order.assignStripeSession(session.getId());
     orderRepository.save(order);
-    return new CheckoutResponse(session.getUrl());
+    return new CheckoutResponse(session.getUrl(), session.getId());
   }
 
   @Transactional
