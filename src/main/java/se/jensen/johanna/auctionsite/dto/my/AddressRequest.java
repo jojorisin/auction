@@ -14,27 +14,28 @@ import jakarta.validation.constraints.Pattern;
  * @param country
  */
 public record AddressRequest(
-        @NotBlank(message = "First name is required")
-        String firstName,
+    @NotBlank(message = "First name is required")
+    String firstName,
 
-        @NotBlank(message = "Last name is required")
-        String lastName,
+    @NotBlank(message = "Last name is required")
+    String lastName,
 
-        String co,
+    String co,
 
-        @NotBlank(message = "Street name is required")
-        String streetName,
+    @NotBlank(message = "Street name is required")
+    String streetName,
 
-        String streetName2,
+    String streetName2,
 
-        @NotBlank(message = "Postal code is required")
-        @Pattern(regexp = "\\d{5}")
-        String postalCode,
+    @NotBlank(message = "Postal code is required")
+    @Pattern(regexp = "\\d{5}", message = "Invalid postal code format.")
+    String postalCode,
 
-        @NotBlank(message = "City is required")
-        String city,
+    @NotBlank(message = "City is required")
+    String city,
 
-        @NotBlank(message = "Country is required")
-        String country
+    @NotBlank(message = "Country is required")
+    String country
 ) {
+
 }
