@@ -19,8 +19,8 @@ import se.jensen.johanna.auctionsite.repository.UserRepository;
 @RequiredArgsConstructor
 public class RefreshTokenService {
 
-  @Value("${app.jwt.refresh-expiration-ms}")
-  private long refreshTokenDurationMs;
+  @Value("${app.cookie.refresh-expiration-s}")
+  private long refreshExpirationSeconds;
 
   private final RefreshTokenRepository refreshTokenRepository;
 
@@ -34,7 +34,7 @@ public class RefreshTokenService {
     AppUser appUser = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
     refreshTokenRepository.deleteByAppUser(appUser);
     refreshTokenRepository.flush();
-    RefreshToken newRefreshToken = RefreshToken.create(appUser, refreshTokenDurationMs);
+    RefreshToken newRefreshToken = RefreshToken.create(appUser, refreshExpirationSeconds);
     refreshTokenRepository.save(newRefreshToken);
     log.info("Created new refresh token for appUser {}.", userId);
     return newRefreshToken;
