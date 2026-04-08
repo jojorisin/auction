@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class CookieUtils {
 
-  @Value("${app.jwt.refresh-expiration-ms}")
-  private Long refreshExpirationMs;
+  @Value("${app.cookie.refresh-expiration-s}")
+  private Long refreshExpirationSeconds;
 
   @Value("${app.cookie.same-site}")
   private String sameSite;
@@ -29,7 +29,7 @@ public class CookieUtils {
    */
   public ResponseCookie createRefreshTokenCookie(String refreshToken) {
     return ResponseCookie.from("refreshToken", refreshToken)
-        .maxAge(refreshExpirationMs)
+        .maxAge(refreshExpirationSeconds)
         .httpOnly(true)
         .path("/")
         .sameSite(sameSite)
